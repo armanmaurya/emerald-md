@@ -2,10 +2,10 @@ import { useLayout } from "../../context/LayoutContext";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { FiFileText } from "react-icons/fi";
-import { useTabEditor } from "../../context/TabEditorContext";
 import { createTab } from "../../utils/createTab";
 import { useTheme } from "../../context/ThemeContext";
 import { MdLightMode, MdDarkMode } from "react-icons/md";
+import { useWorkspace } from "../../hooks/useWorkspace";
 
 
 type SideBarProps = {
@@ -13,7 +13,7 @@ type SideBarProps = {
 };
 
 const SideBar = (props: SideBarProps) => {
-  const { addTab } = useTabEditor();
+  const { addTab } = useWorkspace();
   const { isSidebarOpen } = useLayout();
     const { theme, toggleTheme } = useTheme();
   

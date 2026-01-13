@@ -1,5 +1,5 @@
 import { v4 as uuid4 } from "uuid";
-import { TabState } from "../context/TabEditorContext";
+import { TabState } from "../context/WorkspaceContext";
 import { createEditor } from "./createEditor";
 
 export function createTab(filePath: string, content: string): TabState {

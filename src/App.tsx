@@ -1,35 +1,36 @@
 import { useEffect, useRef } from "react";
 import "./App.css";
 import SideBar from "./components/layout/SideBar";
-import TabEditor from "./components/layout/TabEditor";
+import Workspace from "./components/layout/Workspace";
 import { useLayout } from "./context/LayoutContext";
-import { TabEditorProvider, useTabEditor } from "./context/TabEditorContext";
+import { WorkspaceProvider } from "./context/WorkspaceContext";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { listen } from "@tauri-apps/api/event";
 import { createTab } from "./utils/createTab";
 import { invoke } from "@tauri-apps/api/core";
+import { useWorkspace } from "./hooks/useWorkspace";
 
 function App() {
   const { isSidebarOpen } = useLayout();
 
   return (
     <div className="app bg-surface dark:bg-surface-dark min-h-screen">
-      <TabEditorProvider>
+      <WorkspaceProvider>
         <FileOpenListener />
         <SideBar />
         <main
           className="transition-all duration-300"
           style={{ marginLeft: isSidebarOpen ? "16rem" : "0" }}
         >
-          <TabEditor />
+          <Workspace />
         </main>
-      </TabEditorProvider>
+      </WorkspaceProvider>
     </div>
   );
 }
 
 function FileOpenListener() {
-  const { addTab } = useTabEditor();
+  const { addTab } = useWorkspace();
   const initialized = useRef(false);
 
   useEffect(() => {

@@ -44,7 +44,7 @@ const TitleBar = (props: TitleBarProps) => {
       <div className="overflow-scroll scroll-p-8">
         {props.children}
       </div>
-      <div data-tauri-drag-region className="min-w-24 flex-1"/>
+      <div data-tauri-drag-region className="min-w-14 flex-1"/>
       <div className="flex sticky right-0 top-0 bg-surface dark:bg-surface-dark">
         <button
           onClick={() => appWindow.minimize()}

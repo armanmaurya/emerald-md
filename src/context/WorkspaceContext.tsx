@@ -11,22 +11,23 @@ export type TabState = {
   isDirty: boolean;
 };
 
-type TabEditorContextType = {
+type IWorkspace = {
   tabs: TabState[];
   addTab: (tab?: TabState) => void;
-  removeTab: (id: string) => void;
+  removeTab: (id?: string) => void;
   updateTab: (id: string, updates: Partial<TabState>) => void;
   activeTabId: string | null;
   setActiveTabId: (id: string | null) => void;
   focusNext: () => void;
   focusPrev: () => void;
+  reorderTabs: (fromIndex: number, toIndex: number) => void;
 };
 
-const TabEditorContext = createContext<TabEditorContextType | undefined>(
+export const WorkspaceContext = createContext<IWorkspace | undefined>(
   undefined
 );
 
-export const TabEditorProvider = ({ children }: { children: ReactNode }) => {
+export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   
   const [tabs, setTabsState] = useState<TabState[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
@@ -62,11 +63,13 @@ export const TabEditorProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeTab = (id: string) => {
-    console.log("Removing tab:", id);
-    if (activeTabId === id) {
-      const currentIndex = tabs.findIndex((tab) => tab.id === id);
-      const remainingTabs = tabs.filter((tab) => tab.id !== id);
+  const removeTab = (id?: string) => {
+    const idToRemove = id || activeTabId;
+    if (!idToRemove) return;
+
+    if (activeTabId === idToRemove) {
+      const currentIndex = tabs.findIndex((tab) => tab.id === idToRemove);
+      const remainingTabs = tabs.filter((tab) => tab.id !== idToRemove);
       
       console.log("Current index:", currentIndex);
       console.log("Remaining tabs:", remainingTabs.length);
@@ -83,7 +86,7 @@ export const TabEditorProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     
-    setTabsState((prevTabs) => prevTabs.filter((tab) => tab.id !== id));
+    setTabsState((prevTabs) => prevTabs.filter((tab) => tab.id !== idToRemove));
   };
 
   const focusNext = () => {
@@ -106,19 +109,20 @@ export const TabEditorProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const reorderTabs = (fromIndex: number, toIndex: number) => {
+    setTabsState((prevTabs) => {
+      const newTabs = [...prevTabs];
+      const [movedTab] = newTabs.splice(fromIndex, 1);
+      newTabs.splice(toIndex, 0, movedTab);
+      return newTabs;
+    });
+  };
+
   return (
-    <TabEditorContext.Provider
-      value={{ tabs, addTab, removeTab, updateTab, activeTabId, setActiveTabId, focusNext, focusPrev }}
+    <WorkspaceContext.Provider
+      value={{ tabs, addTab, removeTab, updateTab, activeTabId, setActiveTabId, focusNext, focusPrev, reorderTabs }}
     >
       {children}
-    </TabEditorContext.Provider>
+    </WorkspaceContext.Provider>
   );
-};
-
-export const useTabEditor = () => {
-  const context = useContext(TabEditorContext);
-  if (!context) {
-    throw new Error("useTabEditor must be used within a TabEditorProvider");
-  }
-  return context;
 };
