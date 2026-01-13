@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* =========================
+     Material Light Theme
+     ========================= */
+
+  /* Background & Surfaces */
+  --color-primary-bg: #fafdfc; /* background */
+  --color-surface: #d0d7e0; /* surface */
+  --color-surface-elevated: #ffffff; /* surfaceVariant */
+  --color-surface-hover: #f5f5f5; /* hover state */
+
+  /* Primary (Material Blue) */
+  --color-primary: #1a73e8;
+  --color-primary-hover: #1557b0;
+  --color-primary-container: #e8f0fe;
+
+  /* Text */
+  --color-text-primary: #1f1f1f;
+  --color-text-secondary: #5f6368;
+  --color-text-muted: #80868b;
+
+  /* Borders & Outline */
+  --color-border: #dadce0;
+  --color-border-strong: #c4c7c5;
+
+  /* State Colors */
+  --color-success: #1e8e3e;
+  --color-warning: #f9ab00;
+  --color-error: #d93025;
+  --color-info: #1a73e8;
+
+  /* Focus & Selection */
+  --color-focus-ring: rgba(26, 115, 232, 0.35);
+  --color-selection-bg: #e8f0fe;
+
+  /* =========================
+     Material Dark Theme
+     ========================= */
+
+  /* Background & Surfaces */
+  --color-primary-bg-dark: #202124; /* background */
+  --color-surface-dark: #35383d; /* surface */
+  --color-surface-elevated-dark: #303134; /* surfaceVariant */
+  --color-surface-hover-dark: #4a4d52; /* hover state */
+
+  /* Primary */
+  --color-primary-dark: #8ab4f8;
+  --color-primary-hover-dark: #669df6;
+  --color-primary-container-dark: #1f3a5f;
+
+  /* Text */
+  --color-text-primary-dark: #e8eaed;
+  --color-text-secondary-dark: #bdc1c6;
+  --color-text-muted-dark: #9aa0a6;
+
+  /* Borders & Outline */
+  --color-border-dark: #3c4043;
+  --color-border-strong-dark: #5f6368;
+
+  /* State Colors */
+  --color-success-dark: #81c995;
+  --color-warning-dark: #fdd663;
+  --color-error-dark: #f28b82;
+  --color-info-dark: #8ab4f8;
+
+  /* Focus & Selection */
+  --color-focus-ring-dark: rgba(138, 180, 248, 0.45);
+  --color-selection-bg-dark: rgba(138, 180, 248, 0.25);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overscroll-behavior: none;
+}
+
+/* html { overscroll-behavior: none; } */
+
+/* Disable focus outline globally */
+* {
+  outline: none !important;
+}
+
+*:focus,
+*:focus-visible {
+  outline: none !important;
+}
+
+/* Base editor rhythm */
+.editor {
+  line-height: 1.6;
+}
+
+/* Paragraphs */
+.editor p {
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+}
+
+/* Headings — compact, editor-friendly */
+.editor h1 {
+  margin-top: 0.3em;
+  margin-bottom: 0.2em;
+}
+
+.editor h2 {
+  margin-top: 0.25em;
+  margin-bottom: 0.1em;
+}
+
+.editor h3 {
+  font-size: 1.25rem;
+  line-height: 1.35;
+  margin-top: 0.2em;
+  margin-bottom: 0.1em;
+}
+
+.editor h4,
+.editor h5,
+.editor h6 {
+  margin-top: 0.15em;
+  margin-bottom: 0.08em;
+}
