@@ -25,6 +25,12 @@
         "**"
       ]
     },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [
+        "**"
+      ]
+    },
     "dialog:default",
     "fs:default"
   ]

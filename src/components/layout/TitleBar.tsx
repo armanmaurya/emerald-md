@@ -1,5 +1,4 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { TbArrowsDiagonalMinimize2 } from "react-icons/tb";
 import { FiMaximize } from "react-icons/fi";
 import { CgClose } from "react-icons/cg";
 import { useLayout } from "../../context/LayoutContext";
@@ -8,6 +7,7 @@ import { FaRegWindowRestore } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { TbLayoutSidebar } from "react-icons/tb";
 import { TbLayoutSidebarFilled } from "react-icons/tb";
+import { FaRegWindowMinimize } from "react-icons/fa";
 
 type TitleBarProps = {
   children?: React.ReactNode;
@@ -41,7 +41,7 @@ const TitleBar = (props: TitleBarProps) => {
           <TbLayoutSidebar size={20} />
         )}
       </button>
-      <div className="overflow-scroll scroll-p-8">
+      <div className="overflow-scroll">
         {props.children}
       </div>
       <div data-tauri-drag-region className="min-w-14 flex-1"/>
@@ -50,7 +50,7 @@ const TitleBar = (props: TitleBarProps) => {
           onClick={() => appWindow.minimize()}
           className="p-2 h-10 px-4 rounded transition-colors hover:cursor-pointer hover:bg-primary-bg dark:hover:bg-primary-bg-dark text-text-primary dark:text-text-primary-dark"
         >
-          <TbArrowsDiagonalMinimize2 />
+          <FaRegWindowMinimize size={12}/>
         </button>
         <button
           onClick={() => {
@@ -59,7 +59,7 @@ const TitleBar = (props: TitleBarProps) => {
           }}
           className="p-2 px-4 rounded transition-colors hover:cursor-pointer hover:bg-primary-bg dark:hover:bg-primary-bg-dark text-text-primary dark:text-text-primary-dark"
         >
-          {isMaximized ? <FaRegWindowRestore size={16} /> : <FiMaximize />}
+          {isMaximized ? <FaRegWindowRestore size={12} /> : <FiMaximize size={15} />}
         </button>
         <button
           onClick={() => appWindow.close()}

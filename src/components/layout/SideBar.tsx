@@ -1,11 +1,9 @@
 import { useLayout } from "../../context/LayoutContext";
-import { open } from "@tauri-apps/plugin-dialog";
-import { readTextFile } from "@tauri-apps/plugin-fs";
 import { FiFileText } from "react-icons/fi";
-import { createTab } from "../../utils/createTab";
 import { useTheme } from "../../context/ThemeContext";
 import { MdLightMode, MdDarkMode } from "react-icons/md";
 import { useWorkspace } from "../../hooks/useWorkspace";
+import { performFileOpen } from "../../utils/fileSystem";
 
 
 type SideBarProps = {
@@ -19,24 +17,11 @@ const SideBar = (props: SideBarProps) => {
   
 
   const handleOpenFile = async () => {
-    try {
-      const selected = await open({
-        multiple: false,
-        filters: [
-          {
-            name: "Markdown",
-            extensions: ["md", "markdown"],
-          },
-        ],
-      });
-
-      if (selected) {
-        const content = await readTextFile(selected);
-        const newTab = createTab(selected as string, content);
-        addTab(newTab);
-      }
-    } catch (error) {
-      console.error("Failed to open file:", error);
+    const result = await performFileOpen();
+    if (result) {
+      const fileName = result.path.split("\\").pop() || "Untitled";
+      const title = fileName.replace(/\.md$/, "");
+      addTab(result.path, title, result.content);
     }
   };
 

@@ -1,11 +1,12 @@
 import { Editor } from "@tiptap/react";
-import { createContext, useState, ReactNode, useContext } from "react";
+import { createContext, useState, ReactNode} from "react";
 import { createEditor } from "../utils/createEditor";
+import { performFileRename } from "../utils/fileSystem";
 import { v4 as uuidv4 } from "uuid";
 
 export type TabState = {
   id: string;
-  path?: string;
+  path?: string | null;
   title?: string;
   state: Editor;
   isDirty: boolean;
@@ -13,7 +14,7 @@ export type TabState = {
 
 type IWorkspace = {
   tabs: TabState[];
-  addTab: (tab?: TabState) => void;
+  addTab: (path?: string, title?: string, content?: string) => void;
   removeTab: (id?: string) => void;
   updateTab: (id: string, updates: Partial<TabState>) => void;
   activeTabId: string | null;
@@ -21,6 +22,9 @@ type IWorkspace = {
   focusNext: () => void;
   focusPrev: () => void;
   reorderTabs: (fromIndex: number, toIndex: number) => void;
+  renameTab: (id: string, newName: string) => Promise<void>;
+  isRenamingTabId: string | null;
+  setIsRenamingTabId: (id: string | null) => void;
 };
 
 export const WorkspaceContext = createContext<IWorkspace | undefined>(
@@ -31,33 +35,32 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   
   const [tabs, setTabsState] = useState<TabState[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [isRenamingTabId, setIsRenamingTabId] = useState<string | null>(null);
 
-  const addTab = (tab?: TabState) => {
-    const idToActivate = tab?.id || uuidv4();
+  const addTab = (path?: string, title?: string, content?: string) => {
+    const idToActivate = uuidv4();
     setTabsState((prevTabs) => {
       // If tab with path already exists, focus it instead
-      if (tab?.path) {
-        const existingTab = prevTabs.find((t) => t.path === tab.path);
+      if (path) {
+        const existingTab = prevTabs.find((t) => t.path === path);
         if (existingTab) {
-          // Set active immediately for existing tab
           setActiveTabId(existingTab.id);
-          return prevTabs; // Don't add a new tab
+          return prevTabs;
         }
       }
 
-      // Generate unique path for new tabs
-      const newTab = tab || {
+      // Create new tab with provided parameters or defaults
+      const newTab: TabState = {
         id: idToActivate,
-        path: undefined,
-        title: `Untitled-${Math.max(...prevTabs.map((t) => {
+        path: path,
+        title: title || `Untitled-${Math.max(...prevTabs.map((t) => {
           const match = t.title?.match(/Untitled-(\d+)/);
           return match ? parseInt(match[1]) : 0;
         }), 0) + 1}`,
-        state: createEditor({ content: "" }),
+        state: createEditor({ content: content || "" }),
         isDirty: false,
       };
 
-      // Set active immediately for new tab
       setActiveTabId(newTab.id);
       return [...prevTabs, newTab];
     });
@@ -118,9 +121,28 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const renameTab = async (id: string, newName: string) => {
+    const tabToRename = tabs.find((tab) => tab.id === id);
+    if (!tabToRename) return;
+
+    // If it's a file tab, rename the file
+    if (tabToRename.path) {
+      const newPath = await performFileRename(tabToRename.path, newName);
+      if (newPath) {
+        updateTab(id, { path: newPath, title: newName });
+      }
+    } else {
+      // For unsaved tabs, just update the title
+      updateTab(id, { title: newName });
+    }
+    
+    // Clear renaming state
+    setIsRenamingTabId(null);
+  };
+
   return (
     <WorkspaceContext.Provider
-      value={{ tabs, addTab, removeTab, updateTab, activeTabId, setActiveTabId, focusNext, focusPrev, reorderTabs }}
+      value={{ tabs, addTab, removeTab, updateTab, activeTabId, setActiveTabId, focusNext, focusPrev, reorderTabs, renameTab, isRenamingTabId, setIsRenamingTabId }}
     >
       {children}
     </WorkspaceContext.Provider>

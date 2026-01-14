@@ -41,8 +41,9 @@ function FileOpenListener() {
     const handleFileOpen = async (filePath: string) => {
       try {
         const content = await readTextFile(filePath);
-        const newTab = createTab(filePath, content);
-        addTab(newTab);
+        const fileName = filePath.split("\\").pop() || "Untitled";
+        const title = fileName.replace(/\.md$/, "");
+        addTab(filePath, title, content);
       } catch (error) {
         console.error("Failed to open file:", error);
       }

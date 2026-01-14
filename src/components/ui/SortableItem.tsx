@@ -32,6 +32,17 @@ const SortableItem = ({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  // Filter out space and enter from keyboard listeners
+  const filteredListeners = {
+    ...listeners,
+    onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === " " || e.key === "Enter") {
+        return;
+      }
+      listeners?.onKeyDown?.(e as any);
+    },
+  };
+
   return (
     <div
       ref={(el) => {
@@ -40,7 +51,7 @@ const SortableItem = ({
       }}
       style={style}
       {...attributes}
-      {...listeners}
+      {...filteredListeners}
       onClick={onActivate}
       className={className}
     >

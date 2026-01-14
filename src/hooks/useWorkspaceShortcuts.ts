@@ -1,12 +1,14 @@
 import { useHotkeys } from "react-hotkeys-hook";
 import { WORKSPACE_SHORTCUTS as SC } from "../config/shortcuts";
+import { performFileOpen } from "../utils/fileSystem";
 
 type UseWorkspaceShortcutsProps = {
-  addTab: () => void;
+  addTab: (path?: string, title?: string, content?: string) => void;
   closeTab: () => void;
   focusNextTab: () => void;
   focusPrevTab: () => void;
   handleSaveFile?: () => void;
+  startRenameTab: () => void;
 };
 
 export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
@@ -67,6 +69,38 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
     (event) => {
       event.preventDefault();
       actions.handleSaveFile?.();
+    },
+    {
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
+    },
+    [actions]
+  );
+
+  useHotkeys(
+    SC.OPEN_FILE,
+    (event) => {
+      event.preventDefault();
+      performFileOpen().then((result) => {
+        if (result) {
+          const fileName = result.path.split("\\").pop() || "Untitled";
+          const title = fileName.replace(/\.md$/, "");
+          actions.addTab(result.path, title, result.content);
+        }
+      });
+    },
+    {
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
+    },
+    [actions]
+  );
+
+  useHotkeys(
+    SC.RENAME_FILE,
+    (event) => {
+      event.preventDefault();
+      actions.startRenameTab();
     },
     {
       enableOnContentEditable: true,

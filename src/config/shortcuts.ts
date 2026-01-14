@@ -9,4 +9,6 @@ export const WORKSPACE_SHORTCUTS = {
   NEXT_TAB: "mod+tab",
   PREV_TAB: "mod+shift+tab",
   SAVE_FILE: "mod+s",
+  OPEN_FILE: "mod+o",
+  RENAME_FILE: "f2",
 } as const;

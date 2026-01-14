@@ -1,0 +1,94 @@
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { restrictToHorizontalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
+import { FaPlus } from "react-icons/fa";
+import SortableItem from "../ui/SortableItem";
+import Tab from "../ui/Tab";
+import { useWorkspace } from "../../hooks/useWorkspace";
+
+interface TabBarProps {
+  tabRefs: React.MutableRefObject<Map<string, HTMLDivElement>>;
+  tabsContainerRef?: React.RefObject<HTMLDivElement>;
+}
+
+export const TabBar = ({ tabRefs, tabsContainerRef }: TabBarProps) => {
+  const { tabs, activeTabId, setActiveTabId, removeTab, addTab, reorderTabs, renameTab, isRenamingTabId, setIsRenamingTabId } =
+    useWorkspace();
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = tabs.findIndex((tab) => tab.id === active.id);
+      const newIndex = tabs.findIndex((tab) => tab.id === over.id);
+      reorderTabs(oldIndex, newIndex);
+    }
+  };
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+      modifiers={[restrictToHorizontalAxis, restrictToParentElement]}
+    >
+      <div className="flex items-center gap-2">
+        <div
+          ref={tabsContainerRef}
+          className="select-none h-full items-center flex gap-1"
+        >
+          <SortableContext
+            items={tabs.map((t) => t.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            {tabs.map((tab) => (
+              <SortableItem
+                key={tab.id}
+                id={tab.id}
+                onActivate={() => setActiveTabId(tab.id)}
+                className="h-full"
+                tabRef={(el) =>
+                  el
+                    ? tabRefs.current.set(tab.id, el)
+                    : tabRefs.current.delete(tab.id)
+                }
+              >
+                <Tab
+                  title={tab.title || "Untitled"}
+                  isActive={activeTabId === tab.id}
+                  isDirty={tab.isDirty}
+                  onActivate={() => setActiveTabId(tab.id)}
+                  onClose={() => removeTab(tab.id)}
+                  onRename={(newName) => renameTab(tab.id, newName)}
+                  isRenaming={isRenamingTabId === tab.id}
+                  onCancelRename={() => setIsRenamingTabId(null)}
+                />
+              </SortableItem>
+            ))}
+          </SortableContext>
+        </div>
+        <button
+          onClick={() => addTab()}
+          className="p-2 hover:bg-surface-hover dark:hover:bg-surface-hover-dark rounded-full sticky right-0 transition-all bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
+        >
+          <FaPlus size={12} />
+        </button>
+      </div>
+    </DndContext>
+  );
+};
