@@ -11,13 +11,22 @@ type SideBarProps = {
 };
 
 const SideBar = (props: SideBarProps) => {
-  const { addTab } = useWorkspace();
+  const { addTab, recentFiles } = useWorkspace();
   const { isSidebarOpen } = useLayout();
     const { theme, toggleTheme } = useTheme();
   
 
   const handleOpenFile = async () => {
     const result = await performFileOpen();
+    if (result) {
+      const fileName = result.path.split("\\").pop() || "Untitled";
+      const title = fileName.replace(/\.md$/, "");
+      addTab(result.path, title, result.content);
+    }
+  };
+
+  const handleRecentFileClick = async (path: string) => {
+    const result = await performFileOpen(path);
     if (result) {
       const fileName = result.path.split("\\").pop() || "Untitled";
       const title = fileName.replace(/\.md$/, "");
@@ -53,6 +62,33 @@ const SideBar = (props: SideBarProps) => {
             <FiFileText size={20} />
           </button>
         </div>
+
+        {/* Recent Files Section */}
+        {recentFiles.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold mb-2 text-text-secondary dark:text-text-secondary-dark">
+              Recent Files
+            </h3>
+            <div className="space-y-1">
+              {recentFiles.map((filePath, index) => {
+                const fileName = filePath.split("\\").pop()?.replace(/\.md$/, "") || filePath;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleRecentFileClick(filePath)}
+                    className="w-full hover:cursor-pointer text-left p-2 rounded text-sm hover:bg-surface-elevated dark:hover:bg-surface-elevated-dark transition-colors truncate"
+                    title={filePath}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <FiFileText size={14} className="" />
+                      <span className="truncate">{fileName}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );

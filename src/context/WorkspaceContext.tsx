@@ -1,5 +1,5 @@
 import { Editor } from "@tiptap/react";
-import { createContext, useState, ReactNode} from "react";
+import { createContext, useState, ReactNode, useEffect} from "react";
 import { createEditor } from "../utils/createEditor";
 import { performFileRename } from "../utils/fileSystem";
 import { v4 as uuidv4 } from "uuid";
@@ -25,6 +25,7 @@ type IWorkspace = {
   renameTab: (id: string, newName: string) => Promise<void>;
   isRenamingTabId: string | null;
   setIsRenamingTabId: (id: string | null) => void;
+  recentFiles: string[];
 };
 
 export const WorkspaceContext = createContext<IWorkspace | undefined>(
@@ -36,9 +37,39 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const [tabs, setTabsState] = useState<TabState[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [isRenamingTabId, setIsRenamingTabId] = useState<string | null>(null);
+  const [recentFiles, setRecentFiles] = useState<string[]>([]);
+
+  // Load recent files from storage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("recent_files");
+    if (saved) {
+      try {
+        setRecentFiles(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse recent files", e);
+      }
+    }
+  }, []);
+
+  // Helper to add a file to the top of the list
+  const addToRecents = (path: string) => {
+    setRecentFiles((prev) => {
+      // Remove if path already exists to move it to the top
+      const filtered = prev.filter((p) => p !== path);
+      const updated = [path, ...filtered].slice(0, 10); // Keep top 10
+      localStorage.setItem("recent_files", JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const addTab = (path?: string, title?: string, content?: string) => {
     const idToActivate = uuidv4();
+    
+    // If a path is provided, it's a real file, so add to recents
+    if (path) {
+      addToRecents(path);
+    }
+
     setTabsState((prevTabs) => {
       // If tab with path already exists, focus it instead
       if (path) {
@@ -142,7 +173,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <WorkspaceContext.Provider
-      value={{ tabs, addTab, removeTab, updateTab, activeTabId, setActiveTabId, focusNext, focusPrev, reorderTabs, renameTab, isRenamingTabId, setIsRenamingTabId }}
+      value={{ tabs, addTab, removeTab, updateTab, activeTabId, setActiveTabId, focusNext, focusPrev, reorderTabs, renameTab, isRenamingTabId, setIsRenamingTabId, recentFiles }}
     >
       {children}
     </WorkspaceContext.Provider>

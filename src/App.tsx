@@ -6,7 +6,6 @@ import { useLayout } from "./context/LayoutContext";
 import { WorkspaceProvider } from "./context/WorkspaceContext";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { listen } from "@tauri-apps/api/event";
-import { createTab } from "./utils/createTab";
 import { invoke } from "@tauri-apps/api/core";
 import { useWorkspace } from "./hooks/useWorkspace";
 

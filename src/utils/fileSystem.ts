@@ -2,25 +2,32 @@ import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile, remove } from "@tauri-apps/plugin-fs";
 import { TabState } from "../context/WorkspaceContext";
 
-export const performFileOpen = async () => {
+export const performFileOpen = async (path?: string) => {
   try {
-    const selected = await open({
-      multiple: false,
-      filters: [
-        {
-          name: "Markdown",
-          extensions: ["md", "markdown"],
-        },
-      ],
-    });
+    let filePath: string;
 
-    if (selected) {
-      const content = await readTextFile(selected);
-      return {
-        path: selected as string,
-        content: content,
-      };
+    if (path) {
+      filePath = path;
+    } else {
+      const selected = await open({
+        multiple: false,
+        filters: [
+          {
+            name: "Markdown",
+            extensions: ["md", "markdown"],
+          },
+        ],
+      });
+
+      if (!selected) return null;
+      filePath = selected as string;
     }
+
+    const content = await readTextFile(filePath);
+    return {
+      path: filePath,
+      content: content,
+    };
   } catch (error) {
     console.error("Failed to open file:", error);
     return null;
