@@ -1,9 +1,11 @@
 import { useHotkeys } from "react-hotkeys-hook";
 import { WORKSPACE_SHORTCUTS as SC } from "../config/shortcuts";
 import { performFileOpen } from "../utils/fileSystem";
+import { TabType } from "../context/WorkspaceContext";
+import { useLayout } from "../context/LayoutContext";
 
 type UseWorkspaceShortcutsProps = {
-  addTab: (path?: string, title?: string, content?: string) => void;
+  addTab: (type?: TabType, config?: any) => void;
   closeTab: () => void;
   focusNextTab: () => void;
   focusPrevTab: () => void;
@@ -12,6 +14,7 @@ type UseWorkspaceShortcutsProps = {
 };
 
 export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
+  const { toggleSidebar } = useLayout();
   useHotkeys(
     SC.NEW_TAB,
     (event) => {
@@ -85,7 +88,11 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
         if (result) {
           const fileName = result.path.split("\\").pop() || "Untitled";
           const title = fileName.replace(/\.md$/, "");
-          actions.addTab(result.path, title, result.content);
+          actions.addTab("editor", {
+            path: result.path,
+            title,
+            content: result.content,
+          });
         }
       });
     },
@@ -107,5 +114,18 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnFormTags: true,
     },
     [actions]
+  );
+
+  useHotkeys(
+    SC.TOGGLE_SIDEBAR,
+    (event) => {
+      event.preventDefault();
+      toggleSidebar();
+    },
+    {
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
+    },
+    [toggleSidebar]
   );
 };

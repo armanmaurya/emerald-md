@@ -71,12 +71,13 @@ export const TabBar = ({ tabRefs, tabsContainerRef }: TabBarProps) => {
                 <Tab
                   title={tab.title || "Untitled"}
                   isActive={activeTabId === tab.id}
-                  isDirty={tab.isDirty}
+                  isDirty={tab.type === 'editor' ? tab.isDirty : undefined}
+                  tabType={tab.type}
                   onActivate={() => setActiveTabId(tab.id)}
                   onClose={() => removeTab(tab.id)}
-                  onRename={(newName) => renameTab(tab.id, newName)}
-                  isRenaming={isRenamingTabId === tab.id}
-                  onCancelRename={() => setIsRenamingTabId(null)}
+                  onRename={tab.type === 'editor' ? (newName) => renameTab(tab.id, newName) : undefined}
+                  isRenaming={tab.type === 'editor' ? isRenamingTabId === tab.id : undefined}
+                  onCancelRename={tab.type === 'editor' ? () => setIsRenamingTabId(null) : undefined}
                 />
               </SortableItem>
             ))}

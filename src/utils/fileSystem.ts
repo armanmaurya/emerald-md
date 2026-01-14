@@ -35,7 +35,7 @@ export const performFileOpen = async (path?: string) => {
 };
 
 export const performFileSave = async (tab: TabState, updateTab: Function) => {
-  if (!tab) return;
+  if (!tab || tab.type !== 'editor') return;
 
   const markdown = tab.state.getMarkdown();
 

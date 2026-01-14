@@ -42,7 +42,7 @@ function FileOpenListener() {
         const content = await readTextFile(filePath);
         const fileName = filePath.split("\\").pop() || "Untitled";
         const title = fileName.replace(/\.md$/, "");
-        addTab(filePath, title, content);
+        addTab('editor', { path: filePath, title, content });
       } catch (error) {
         console.error("Failed to open file:", error);
       }
