@@ -1,6 +1,6 @@
-<p align="center"><img src="public/logo.png" alt="Emerald" width="100" height="100"></p>
+<p align="center"><img src="public/icon.png" alt="Emerald" width="100" height="100"></p>
 
-<h1 align="center">Emerald</h1>
+<h1 align="center" style="margin-top:0px">Emerald</h1>
 
 <p align="center"><b>Polished Markdown editor for focused writing. </b>
 <br>

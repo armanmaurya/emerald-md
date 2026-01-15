@@ -12,4 +12,5 @@ export const WORKSPACE_SHORTCUTS = {
   OPEN_FILE: "mod+o",
   RENAME_FILE: "f2",
   TOGGLE_SIDEBAR: "mod+b",
+  TOGGLE_PREVIEW: "mod+e",
 } as const;

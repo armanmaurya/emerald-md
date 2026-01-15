@@ -1,6 +1,6 @@
 import { CgClose } from "react-icons/cg";
 import { GoDotFill } from "react-icons/go";
-import { IoSettingsOutline, IoSettings  } from "react-icons/io5";
+import { IoSettings  } from "react-icons/io5";
 import { MdDashboard } from "react-icons/md";
 import { useState, useRef, useEffect } from "react";
 import AutowidthInput from "react-autowidth-input";

@@ -11,6 +11,7 @@ type UseWorkspaceShortcutsProps = {
   focusPrevTab: () => void;
   handleSaveFile?: () => void;
   startRenameTab: () => void;
+  toggleViewMode?: () => void;
 };
 
 export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
@@ -127,5 +128,18 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnFormTags: true,
     },
     [toggleSidebar]
+  );
+
+  useHotkeys(
+    SC.TOGGLE_PREVIEW,
+    (event) => {
+      event.preventDefault();
+      actions.toggleViewMode?.();
+    },
+    {
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
+    },
+    [actions]
   );
 };

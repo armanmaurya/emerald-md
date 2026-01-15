@@ -19,6 +19,7 @@ const Workspace = () => {
     focusPrev,
     updateTab,
     setIsRenamingTabId,
+    toggleViewMode,
   } = useWorkspace();
   const { isSidebarOpen } = useLayout();
   const tabsContainerRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
@@ -62,7 +63,14 @@ const Workspace = () => {
         setIsRenamingTabId(activeTabId);
       }
     },
+    toggleViewMode,
   });
+
+  const handleViewModeChange = (mode: 'source' | 'preview') => {
+    if (activeTab?.type === 'editor') {
+      updateTab(activeTab.id, { viewMode: mode });
+    }
+  };
 
   const renderActiveContent = () => {
     if (!activeTab) {
@@ -85,7 +93,13 @@ const Workspace = () => {
 
     switch (activeTab.type) {
       case 'editor':
-        return <Tiptap editor={activeTab.state} />;
+        return (
+          <Tiptap 
+            editor={activeTab.state} 
+            viewMode={activeTab.viewMode || 'preview'}
+            onViewModeChange={handleViewModeChange}
+          />
+        );
       case 'settings':
         return <SettingsView category={activeTab.category} />;
       case 'dashboard':

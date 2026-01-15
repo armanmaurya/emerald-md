@@ -16,6 +16,7 @@ export interface EditorTab extends BaseTab {
   path?: string | null;
   state: Editor;
   isDirty: boolean;
+  viewMode?: 'source' | 'preview';
 }
 
 export interface SettingsTab extends BaseTab {
@@ -43,6 +44,7 @@ type IWorkspace = {
   isRenamingTabId: string | null;
   setIsRenamingTabId: (id: string | null) => void;
   recentFiles: string[];
+  toggleViewMode: () => void;
 };
 
 export const WorkspaceContext = createContext<IWorkspace | undefined>(
@@ -137,6 +139,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
             }), 0) + 1}`,
           state: createEditor({ content: content || "" }),
           isDirty: false,
+          viewMode: 'preview',
         } as EditorTab;
       }
 
@@ -228,9 +231,19 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     setIsRenamingTabId(null);
   };
 
+  const toggleViewMode = () => {
+    if (!activeTabId) return;
+    const activeTab = tabs.find((tab) => tab.id === activeTabId);
+    if (activeTab?.type === 'editor') {
+      const currentMode = activeTab.viewMode || 'preview';
+      const newMode = currentMode === 'preview' ? 'source' : 'preview';
+      updateTab(activeTab.id, { viewMode: newMode } as Partial<EditorTab>);
+    }
+  };
+
   return (
     <WorkspaceContext.Provider
-      value={{ tabs, addTab, removeTab, updateTab, activeTabId, setActiveTabId, focusNext, focusPrev, reorderTabs, renameTab, isRenamingTabId, setIsRenamingTabId, recentFiles }}
+      value={{ tabs, addTab, removeTab, updateTab, activeTabId, setActiveTabId, focusNext, focusPrev, reorderTabs, renameTab, isRenamingTabId, setIsRenamingTabId, recentFiles, toggleViewMode }}
     >
       {children}
     </WorkspaceContext.Provider>

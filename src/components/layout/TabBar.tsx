@@ -85,7 +85,7 @@ export const TabBar = ({ tabRefs, tabsContainerRef }: TabBarProps) => {
         </div>
         <button
           onClick={() => addTab()}
-          className="p-2 hover:bg-surface-hover dark:hover:bg-surface-hover-dark rounded-full sticky right-0 transition-all bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
+          className="p-2 hover:bg-surface-hover hover:cursor-pointer dark:hover:bg-surface-hover-dark rounded-full sticky right-0 transition-all bg-surface dark:bg-surface-dark text-text-primary dark:text-text-primary-dark"
         >
           <FaPlus size={12} />
         </button>
