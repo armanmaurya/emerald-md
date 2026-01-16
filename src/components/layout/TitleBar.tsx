@@ -41,7 +41,7 @@ const TitleBar = (props: TitleBarProps) => {
           <TbLayoutSidebar size={20} />
         )}
       </button>
-      <div className="overflow-scroll">
+      <div className="overflow-x-auto">
         {props.children}
       </div>
       <div data-tauri-drag-region className="min-w-14 flex-1"/>

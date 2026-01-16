@@ -1,5 +1,4 @@
 import { useLayout } from "../../context/LayoutContext";
-import { FiFileText } from "react-icons/fi";
 import { useTheme } from "../../context/ThemeContext";
 import { MdLightMode, MdDarkMode } from "react-icons/md";
 import { IoSettings } from "react-icons/io5";

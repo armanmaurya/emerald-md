@@ -81,7 +81,7 @@ const Tiptap = ({
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col px-3 pt-2">
       {/* Status Bar */}
       <div className="flex fixed right-0 bottom-0 justify-end bg-surface-elevated dark:bg-surface-elevated-dark px-2 py-1 rounded-tl-lg z-10">
         <button
@@ -102,7 +102,7 @@ const Tiptap = ({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1">
         {viewMode === "preview" ? (
           <div
             className="hover:cursor-text h-full"

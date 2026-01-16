@@ -8,6 +8,9 @@ import { performFileSave } from "../../utils/fileSystem";
 import { TabBar } from "./TabBar";
 import SettingsView from "../views/SettingsView";
 import DashboardView from "../views/DashboardView";
+import SimpleBar from 'simplebar-react';
+import 'simplebar-react/dist/simplebar.min.css';
+
 
 const Workspace = () => {
   const {
@@ -22,13 +25,15 @@ const Workspace = () => {
     toggleViewMode,
   } = useWorkspace();
   const { isSidebarOpen } = useLayout();
-  const tabsContainerRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
+  const tabsContainerRef = useRef<HTMLDivElement>(
+    null
+  ) as React.RefObject<HTMLDivElement>;
   const tabRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId);
 
   const handleFileSave = async () => {
-    if (!activeTab || activeTab.type !== 'editor') return;
+    if (!activeTab || activeTab.type !== "editor") return;
     performFileSave(activeTab, updateTab);
   };
 
@@ -47,7 +52,7 @@ const Workspace = () => {
 
   useEffect(() => {
     const activeTab = tabs.find((tab) => tab.id === activeTabId);
-    if (activeTab?.type === 'editor' && activeTab.state) {
+    if (activeTab?.type === "editor" && activeTab.state) {
       activeTab.state.commands.focus();
     }
   }, [activeTabId, tabs]);
@@ -59,15 +64,15 @@ const Workspace = () => {
     focusPrevTab: focusPrev,
     handleSaveFile: handleFileSave,
     startRenameTab: () => {
-      if (activeTab?.type === 'editor') {
+      if (activeTab?.type === "editor") {
         setIsRenamingTabId(activeTabId);
       }
     },
     toggleViewMode,
   });
 
-  const handleViewModeChange = (mode: 'source' | 'preview') => {
-    if (activeTab?.type === 'editor') {
+  const handleViewModeChange = (mode: "source" | "preview") => {
+    if (activeTab?.type === "editor") {
       updateTab(activeTab.id, { viewMode: mode });
     }
   };
@@ -92,17 +97,17 @@ const Workspace = () => {
     }
 
     switch (activeTab.type) {
-      case 'editor':
+      case "editor":
         return (
-          <Tiptap 
-            editor={activeTab.state} 
-            viewMode={activeTab.viewMode || 'preview'}
+          <Tiptap
+            editor={activeTab.state}
+            viewMode={activeTab.viewMode || "preview"}
             onViewModeChange={handleViewModeChange}
           />
         );
-      case 'settings':
+      case "settings":
         return <SettingsView category={activeTab.category} />;
-      case 'dashboard':
+      case "dashboard":
         return <DashboardView />;
       default:
         return <div>Unknown Tab Type</div>;
@@ -114,10 +119,10 @@ const Workspace = () => {
       <TitleBar>
         <TabBar tabRefs={tabRefs} tabsContainerRef={tabsContainerRef} />
       </TitleBar>
-      <div
-        className={`mt-10 pt-2 px-4 bg-primary-bg transition-all ${
+      <SimpleBar
+        className={`mt-10 overflow-auto bg-primary-bg transition-all ${
           isSidebarOpen ? "rounded-l-2xl" : " rounded-l-none"
-        } h-full dark:bg-primary-bg-dark overflow-scroll`}
+        } h-full dark:bg-primary-bg-dark`}
         onClick={() => {
           if (activeTabId && tabsContainerRef.current) {
             const activeTabElement = tabRefs.current.get(activeTabId);
@@ -132,7 +137,7 @@ const Workspace = () => {
         }}
       >
         {renderActiveContent()}
-      </div>
+      </SimpleBar>
     </div>
   );
 };

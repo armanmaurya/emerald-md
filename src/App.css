@@ -82,6 +82,18 @@
   padding: 0 !important;
 } */
 
+.simplebar-vertical {
+  width: 8px !important;
+}
+
+.simplebar-content {
+  height: 100% !important;
+}
+
+.simplebar-scrollbar:before {
+  background: rgba(100, 100, 100, 0.6) !important;
+}
+
 /* Hide scrollbar for IE, Edge and Firefox */
 html {
   -ms-overflow-style: none;
