@@ -106,7 +106,7 @@ const Workspace = () => {
           />
         );
       case "settings":
-        return <SettingsView category={activeTab.category} />;
+        return <SettingsView />;
       case "dashboard":
         return <DashboardView />;
       default:
