@@ -103,7 +103,7 @@ const Tab = ({ title, isActive, isDirty = false, tabType, onActivate, onClose, o
         <span onDoubleClick={handleDoubleClick}>{title}</span>
       )}
       {isDirty && tabType === 'editor' ? (
-        <GoDotFill className="text-accent" size={10} />
+        <GoDotFill className="text-accent" size={12} />
       ) : (
         <CgClose
           size={12}

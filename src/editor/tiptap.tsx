@@ -2,6 +2,7 @@ import { EditorContent, Editor } from "@tiptap/react";
 import { useState, useEffect, useRef } from "react";
 import { FaCode } from "react-icons/fa";
 import { FaEye } from "react-icons/fa";
+import { useWorkspace } from "../hooks/useWorkspace";
 
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
@@ -41,6 +42,7 @@ const Tiptap = ({
 }: TiptapProps) => {
   const [sourceContent, setSourceContent] = useState("");
   const codeMirrorRef = useRef<any>(null);
+  const { activeTabId, updateTab } = useWorkspace();
 
   // Sync source content when switching to source mode
   useEffect(() => {
@@ -52,6 +54,21 @@ const Tiptap = ({
     }
   }, [viewMode, editor]);
 
+  // Track editor changes and set isDirty to true
+  useEffect(() => {
+    const handleUpdate = () => {
+      if (activeTabId) {
+        updateTab(activeTabId, { isDirty: true });
+      }
+    };
+
+    editor.on("update", handleUpdate);
+
+    return () => {
+      editor.off("update", handleUpdate);
+    };
+  }, [editor, activeTabId, updateTab]);
+
   const handleSourceChange = (value: string) => {
     setSourceContent(value);
     // Real-time sync to the Tiptap instance in the background
@@ -59,6 +76,10 @@ const Tiptap = ({
       contentType: 'markdown',
       emitUpdate: false // Prevent infinite loops
     });
+    // Mark tab as dirty when source mode content changes
+    if (activeTabId) {
+      updateTab(activeTabId, { isDirty: true });
+    }
   };
 
   const handleToggleMode = () => {

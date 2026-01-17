@@ -1,7 +1,7 @@
 import { useLayout } from "../../context/LayoutContext";
 import { useTheme } from "../../context/ThemeContext";
 import { MdLightMode, MdDarkMode } from "react-icons/md";
-import { IoSettings } from "react-icons/io5";
+// import { IoSettings } from "react-icons/io5";
 import { useWorkspace } from "../../hooks/useWorkspace";
 import { performFileOpen } from "../../utils/fileSystem";
 import { FaFolderOpen } from "react-icons/fa";
@@ -64,13 +64,13 @@ const SideBar = (props: SideBarProps) => {
           >
             <FaFolderOpen size={20} />
           </button>
-          <button
+          {/* <button
             onClick={() => addTab("settings")}
             className="p-2 rounded flex items-center space-x-2 w-full justify-center hover:cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-hover-dark bg-surface-elevated dark:bg-surface-elevated-dark transition-all"
             title="Open Settings"
           >
             <IoSettings size={18} />
-          </button>
+          </button> */}
         </div>
 
         {/* Recent Files Section */}

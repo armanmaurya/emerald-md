@@ -34,7 +34,9 @@ const Workspace = () => {
 
   const handleFileSave = async () => {
     if (!activeTab || activeTab.type !== "editor") return;
-    performFileSave(activeTab, updateTab);
+    await performFileSave(activeTab, updateTab);
+    // Reset isDirty after successful save
+    updateTab(activeTab.id, { isDirty: false });
   };
 
   useEffect(() => {
