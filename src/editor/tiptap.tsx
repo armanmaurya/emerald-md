@@ -45,6 +45,11 @@ const Tiptap = ({
   const { activeTabId, updateTab } = useWorkspace();
   const isInitialMount = useRef(true);
 
+  // Reset isInitialMount when editor instance changes
+  useEffect(() => {
+    isInitialMount.current = true;
+  }, [editor]);
+
   // Sync source content when switching to source mode
   useEffect(() => {
     if (viewMode === "source") {
