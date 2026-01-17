@@ -12,13 +12,17 @@ type UseWorkspaceShortcutsProps = {
   handleSaveFile?: () => void;
   startRenameTab: () => void;
   toggleViewMode?: () => void;
+  isDialogOpen?: boolean;
 };
 
 export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
   const { toggleSidebar } = useLayout();
+  const { isDialogOpen = false } = actions;
+
   useHotkeys(
     SC.NEW_TAB,
     (event) => {
+      if (isDialogOpen) return;
       event.preventDefault();
       actions.addTab();
     },
@@ -26,12 +30,13 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [actions]
+    [actions, isDialogOpen]
   );
 
   useHotkeys(
     SC.CLOSE_TAB,
     (event) => {
+      if (isDialogOpen) return;
       event.preventDefault();
       actions.closeTab();
     },
@@ -39,12 +44,13 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [actions]
+    [actions, isDialogOpen]
   );
 
   useHotkeys(
     SC.NEXT_TAB,
     (event) => {
+      if (isDialogOpen) return;
       event.preventDefault();
       actions.focusNextTab();
     },
@@ -52,12 +58,13 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [actions]
+    [actions, isDialogOpen]
   );
 
   useHotkeys(
     SC.PREV_TAB,
     (event) => {
+      if (isDialogOpen) return;
       event.preventDefault();
       actions.focusPrevTab();
     },
@@ -65,12 +72,13 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [actions]
+    [actions, isDialogOpen]
   );
 
   useHotkeys(
     SC.SAVE_FILE,
     (event) => {
+      if (isDialogOpen) return;
       event.preventDefault();
       actions.handleSaveFile?.();
     },
@@ -78,12 +86,13 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [actions]
+    [actions, isDialogOpen]
   );
 
   useHotkeys(
     SC.OPEN_FILE,
     (event) => {
+      if (isDialogOpen) return;
       event.preventDefault();
       performFileOpen().then((result) => {
         if (result) {
@@ -101,12 +110,13 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [actions]
+    [actions, isDialogOpen]
   );
 
   useHotkeys(
     SC.RENAME_FILE,
     (event) => {
+      if (isDialogOpen) return;
       event.preventDefault();
       actions.startRenameTab();
     },
@@ -114,12 +124,13 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [actions]
+    [actions, isDialogOpen]
   );
 
   useHotkeys(
     SC.TOGGLE_SIDEBAR,
     (event) => {
+      if (isDialogOpen) return;
       event.preventDefault();
       toggleSidebar();
     },
@@ -127,12 +138,13 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [toggleSidebar]
+    [toggleSidebar, isDialogOpen]
   );
 
   useHotkeys(
     SC.TOGGLE_PREVIEW,
     (event) => {
+      if (isDialogOpen) return;
       event.preventDefault();
       actions.toggleViewMode?.();
     },
@@ -140,6 +152,6 @@ export const useWorkspaceShortcuts = (actions: UseWorkspaceShortcutsProps) => {
       enableOnContentEditable: true,
       enableOnFormTags: true,
     },
-    [actions]
+    [actions, isDialogOpen]
   );
 };

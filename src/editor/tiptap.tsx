@@ -43,6 +43,7 @@ const Tiptap = ({
   const [sourceContent, setSourceContent] = useState("");
   const codeMirrorRef = useRef<any>(null);
   const { activeTabId, updateTab } = useWorkspace();
+  const isInitialMount = useRef(true);
 
   // Sync source content when switching to source mode
   useEffect(() => {
@@ -57,6 +58,12 @@ const Tiptap = ({
   // Track editor changes and set isDirty to true
   useEffect(() => {
     const handleUpdate = () => {
+      // Skip the first update event (from editor initialization)
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
+      }
+
       if (activeTabId) {
         updateTab(activeTabId, { isDirty: true });
       }

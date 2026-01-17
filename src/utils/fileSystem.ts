@@ -34,8 +34,8 @@ export const performFileOpen = async (path?: string) => {
   }
 };
 
-export const performFileSave = async (tab: TabState, updateTab: Function) => {
-  if (!tab || tab.type !== 'editor') return;
+export const performFileSave = async (tab: TabState, updateTab: Function): Promise<boolean> => {
+  if (!tab || tab.type !== 'editor') return false;
 
   const markdown = tab.state.getMarkdown();
 
@@ -50,7 +50,7 @@ export const performFileSave = async (tab: TabState, updateTab: Function) => {
         filters: [{ name: "Markdown", extensions: ["md"] }],
       });
 
-      if (!filePath) return; // User cancelled
+      if (!filePath) return false; // User cancelled - return false to indicate save failed
 
       const fileName = filePath.split("\\").pop() || "Untitled";
       const title = fileName.replace(/\.md$/, "");
@@ -62,8 +62,10 @@ export const performFileSave = async (tab: TabState, updateTab: Function) => {
     // Write the actual file
     await writeTextFile(filePath, markdown);
     console.log("File saved successfully:", filePath);
+    return true; // Save successful
   } catch (error) {
     console.error("Failed to save file:", error);
+    return false; // Save failed
   }
 };
 

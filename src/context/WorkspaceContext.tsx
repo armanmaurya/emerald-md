@@ -45,6 +45,14 @@ type IWorkspace = {
   setIsRenamingTabId: (id: string | null) => void;
   recentFiles: string[];
   toggleViewMode: () => void;
+  showConfirmDialog: boolean;
+  setShowConfirmDialog: (show: boolean) => void;
+  pendingCloseTabId: string | null;
+  setPendingCloseTabId: (id: string | null) => void;
+  handleConfirmSave: () => Promise<void>;
+  handleConfirmDiscard: () => void;
+  handleConfirmCancel: () => void;
+  isSavingPendingTab: boolean;
 };
 
 export const WorkspaceContext = createContext<IWorkspace | undefined>(
@@ -57,6 +65,9 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [isRenamingTabId, setIsRenamingTabId] = useState<string | null>(null);
   const [recentFiles, setRecentFiles] = useState<string[]>([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingCloseTabId, setPendingCloseTabId] = useState<string | null>(null);
+  const [isSavingPendingTab, setIsSavingPendingTab] = useState(false);
 
   // Load recent files from storage on mount
   useEffect(() => {
@@ -152,21 +163,24 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     const idToRemove = id || activeTabId;
     if (!idToRemove) return;
 
+    // Check if tab is dirty (unsaved changes)
+    const tabToRemove = tabs.find((tab) => tab.id === idToRemove);
+    if (tabToRemove?.type === 'editor' && tabToRemove.isDirty) {
+      // Show confirmation dialog instead of removing immediately
+      setPendingCloseTabId(idToRemove);
+      setShowConfirmDialog(true);
+      return;
+    }
+
+    // If tab is not dirty, proceed with removal
     if (activeTabId === idToRemove) {
       const currentIndex = tabs.findIndex((tab) => tab.id === idToRemove);
       const remainingTabs = tabs.filter((tab) => tab.id !== idToRemove);
       
-      console.log("Current index:", currentIndex);
-      console.log("Remaining tabs:", remainingTabs.length);
-      
       if (remainingTabs.length > 0) {
-        // Activate the previous tab (index - 1), or first tab if removing the first one
         const nextActiveIndex = currentIndex > 0 ? currentIndex - 1 : 0;
-        console.log("Next active index:", nextActiveIndex);
-        console.log("Setting active tab to:", remainingTabs[nextActiveIndex].id);
         setActiveTabId(remainingTabs[nextActiveIndex].id);
       } else {
-        console.log("No remaining tabs, setting active tab to null");
         setActiveTabId(null);
       }
     }
@@ -241,9 +255,109 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const handleConfirmSave = async () => {
+    if (!pendingCloseTabId) return;
+
+    const tabToSave = tabs.find((tab) => tab.id === pendingCloseTabId);
+    if (!tabToSave || tabToSave.type !== 'editor') return;
+
+    setIsSavingPendingTab(true);
+    
+    // Import performFileSave dynamically to avoid circular dependencies
+    const { performFileSave } = await import('../utils/fileSystem');
+    
+    try {
+      const saveSuccess = await performFileSave(tabToSave, updateTab);
+      
+      // Only close the tab if save was successful
+      if (!saveSuccess) {
+        setIsSavingPendingTab(false);
+        return; // Save was cancelled or failed, keep dialog open
+      }
+      
+      // Reset isDirty and close the tab
+      updateTab(pendingCloseTabId, { isDirty: false } as Partial<EditorTab>);
+      
+      // Now actually remove the tab
+      const idToRemove = pendingCloseTabId;
+      if (activeTabId === idToRemove) {
+        const currentIndex = tabs.findIndex((tab) => tab.id === idToRemove);
+        const remainingTabs = tabs.filter((tab) => tab.id !== idToRemove);
+        
+        if (remainingTabs.length > 0) {
+          const nextActiveIndex = currentIndex > 0 ? currentIndex - 1 : 0;
+          setActiveTabId(remainingTabs[nextActiveIndex].id);
+        } else {
+          setActiveTabId(null);
+        }
+      }
+      
+      setTabsState((prevTabs) => prevTabs.filter((tab) => tab.id !== idToRemove));
+      
+      setShowConfirmDialog(false);
+      setPendingCloseTabId(null);
+    } finally {
+      setIsSavingPendingTab(false);
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    if (!pendingCloseTabId) return;
+
+    // Set isDirty to false to bypass the check
+    updateTab(pendingCloseTabId, { isDirty: false } as Partial<EditorTab>);
+    
+    // Now remove the tab
+    const idToRemove = pendingCloseTabId;
+    if (activeTabId === idToRemove) {
+      const currentIndex = tabs.findIndex((tab) => tab.id === idToRemove);
+      const remainingTabs = tabs.filter((tab) => tab.id !== idToRemove);
+      
+      if (remainingTabs.length > 0) {
+        const nextActiveIndex = currentIndex > 0 ? currentIndex - 1 : 0;
+        setActiveTabId(remainingTabs[nextActiveIndex].id);
+      } else {
+        setActiveTabId(null);
+      }
+    }
+    
+    setTabsState((prevTabs) => prevTabs.filter((tab) => tab.id !== idToRemove));
+    
+    setShowConfirmDialog(false);
+    setPendingCloseTabId(null);
+  };
+
+  const handleConfirmCancel = () => {
+    setShowConfirmDialog(false);
+    setPendingCloseTabId(null);
+  };
+
   return (
     <WorkspaceContext.Provider
-      value={{ tabs, addTab, removeTab, updateTab, activeTabId, setActiveTabId, focusNext, focusPrev, reorderTabs, renameTab, isRenamingTabId, setIsRenamingTabId, recentFiles, toggleViewMode }}
+      value={{ 
+        tabs, 
+        addTab, 
+        removeTab, 
+        updateTab, 
+        activeTabId, 
+        setActiveTabId, 
+        focusNext, 
+        focusPrev, 
+        reorderTabs, 
+        renameTab, 
+        isRenamingTabId, 
+        setIsRenamingTabId, 
+        recentFiles, 
+        toggleViewMode,
+        showConfirmDialog,
+        setShowConfirmDialog,
+        pendingCloseTabId,
+        setPendingCloseTabId,
+        handleConfirmSave,
+        handleConfirmDiscard,
+        handleConfirmCancel,
+        isSavingPendingTab,
+      }}
     >
       {children}
     </WorkspaceContext.Provider>

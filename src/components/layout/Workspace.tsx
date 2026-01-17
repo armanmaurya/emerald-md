@@ -8,6 +8,7 @@ import { performFileSave } from "../../utils/fileSystem";
 import { TabBar } from "./TabBar";
 import SettingsView from "../views/SettingsView";
 import DashboardView from "../views/DashboardView";
+import ConfirmDialog from "../ui/ConfirmDialog";
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 
@@ -23,6 +24,11 @@ const Workspace = () => {
     updateTab,
     setIsRenamingTabId,
     toggleViewMode,
+    showConfirmDialog,
+    handleConfirmSave,
+    handleConfirmDiscard,
+    handleConfirmCancel,
+    isSavingPendingTab,
   } = useWorkspace();
   const { isSidebarOpen } = useLayout();
   const tabsContainerRef = useRef<HTMLDivElement>(
@@ -34,9 +40,11 @@ const Workspace = () => {
 
   const handleFileSave = async () => {
     if (!activeTab || activeTab.type !== "editor") return;
-    await performFileSave(activeTab, updateTab);
-    // Reset isDirty after successful save
-    updateTab(activeTab.id, { isDirty: false });
+    const saveSuccess = await performFileSave(activeTab, updateTab);
+    // Only reset isDirty if save was successful
+    if (saveSuccess) {
+      updateTab(activeTab.id, { isDirty: false });
+    }
   };
 
   useEffect(() => {
@@ -71,6 +79,7 @@ const Workspace = () => {
       }
     },
     toggleViewMode,
+    isDialogOpen: showConfirmDialog,
   });
 
   const handleViewModeChange = (mode: "source" | "preview") => {
@@ -140,6 +149,17 @@ const Workspace = () => {
       >
         {renderActiveContent()}
       </SimpleBar>
+      
+      {/* Confirm Dialog for unsaved changes */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="Unsaved Changes"
+        message="You have unsaved changes. Do you want to save them before closing?"
+        onSave={handleConfirmSave}
+        onDiscard={handleConfirmDiscard}
+        onCancel={handleConfirmCancel}
+        isSaving={isSavingPendingTab}
+      />
     </div>
   );
 };
