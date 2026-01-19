@@ -1,5 +1,11 @@
 // src/context/LayoutContext.tsx
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
 type LayoutContextType = {
   isSidebarOpen: boolean;
@@ -29,7 +35,11 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
 
   return (
     <LayoutContext.Provider
-      value={{ isSidebarOpen, toggleSidebar, setSidebarOpen: setSidebarOpenWithStorage }}
+      value={{
+        isSidebarOpen,
+        toggleSidebar,
+        setSidebarOpen: setSidebarOpenWithStorage,
+      }}
     >
       {children}
     </LayoutContext.Provider>

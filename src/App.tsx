@@ -4,6 +4,8 @@ import SideBar from "./components/layout/SideBar";
 import Workspace from "./components/layout/Workspace";
 import { useLayout } from "./context/LayoutContext";
 import { WorkspaceProvider } from "./context/WorkspaceContext";
+import { ToastProvider } from "./context/ToastContext";
+import ToastContainer from "./components/ui/ToastContainer";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
@@ -14,16 +16,19 @@ function App() {
 
   return (
     <div className="app bg-surface dark:bg-surface-dark min-h-screen">
-      <WorkspaceProvider>
-        <FileOpenListener />
-        <SideBar />
-        <main
-          className="transition-all duration-300"
-          style={{ marginLeft: isSidebarOpen ? "16rem" : "0" }}
-        >
-          <Workspace />
-        </main>
-      </WorkspaceProvider>
+      <ToastProvider>
+        <WorkspaceProvider>
+          <FileOpenListener />
+          <SideBar />
+          <main
+            className="transition-all duration-300"
+            style={{ marginLeft: isSidebarOpen ? "16rem" : "0" }}
+          >
+            <Workspace />
+          </main>
+          <ToastContainer />
+        </WorkspaceProvider>
+      </ToastProvider>
     </div>
   );
 }
@@ -33,7 +38,6 @@ function FileOpenListener() {
   const initialized = useRef(false);
 
   useEffect(() => {
-    // Only run the setup once
     if (initialized.current) return;
     initialized.current = true;
 
@@ -42,7 +46,7 @@ function FileOpenListener() {
         const content = await readTextFile(filePath);
         const fileName = filePath.split("\\").pop() || "Untitled";
         const title = fileName.replace(/\.md$/, "");
-        addTab('editor', { path: filePath, title, content });
+        addTab("editor", { path: filePath, title, content });
       } catch (error) {
         console.error("Failed to open file:", error);
       }
@@ -58,7 +62,7 @@ function FileOpenListener() {
 
         // Check if a file is being opened from CLI args
         const hasFile = await invoke<boolean>("get_cli_args");
-        
+
         // Only add default untitled tab if no file is being opened
         if (!hasFile) {
           addTab();

@@ -2,6 +2,15 @@ import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile, remove } from "@tauri-apps/plugin-fs";
 import { TabState } from "../context/WorkspaceContext";
 
+export const fileExists = async (filePath: string): Promise<boolean> => {
+  try {
+    await readTextFile(filePath);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
 export const performFileOpen = async (path?: string) => {
   try {
     let filePath: string;
@@ -34,8 +43,11 @@ export const performFileOpen = async (path?: string) => {
   }
 };
 
-export const performFileSave = async (tab: TabState, updateTab: Function): Promise<boolean> => {
-  if (!tab || tab.type !== 'editor') return false;
+export const performFileSave = async (
+  tab: TabState,
+  updateTab: Function,
+): Promise<boolean> => {
+  if (!tab || tab.type !== "editor") return false;
 
   const markdown = tab.state.getMarkdown();
 

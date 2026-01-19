@@ -27,7 +27,7 @@ const TitleBar = (props: TitleBarProps) => {
   return (
     <div
       data-tauri-drag-region
-      className={`flex z-50 justify-between items-center transition-all duration-300 fixed top-0 right-0 p-0 m-0 bg-surface dark:bg-surface-dark ${
+      className={`flex z-40 justify-between items-center transition-all duration-300 fixed top-0 right-0 p-0 m-0 bg-surface dark:bg-surface-dark ${
         isSidebarOpen ? "left-64" : "left-0"
       } ${props.className || ""}`}
     >
@@ -41,16 +41,14 @@ const TitleBar = (props: TitleBarProps) => {
           <TbLayoutSidebar size={20} />
         )}
       </button>
-      <div className="overflow-x-auto">
-        {props.children}
-      </div>
-      <div data-tauri-drag-region className="min-w-14 flex-1"/>
+      <div className="overflow-x-auto">{props.children}</div>
+      <div data-tauri-drag-region className="min-w-14 flex-1" />
       <div className="flex sticky right-0 top-0 bg-surface dark:bg-surface-dark">
         <button
           onClick={() => appWindow.minimize()}
           className="p-2 h-10 px-4 rounded transition-colors hover:cursor-pointer hover:bg-primary-bg dark:hover:bg-primary-bg-dark text-text-primary dark:text-text-primary-dark"
         >
-          <FaRegWindowMinimize size={12}/>
+          <FaRegWindowMinimize size={12} />
         </button>
         <button
           onClick={() => {
@@ -59,7 +57,11 @@ const TitleBar = (props: TitleBarProps) => {
           }}
           className="p-2 px-4 rounded transition-colors hover:cursor-pointer hover:bg-primary-bg dark:hover:bg-primary-bg-dark text-text-primary dark:text-text-primary-dark"
         >
-          {isMaximized ? <FaRegWindowRestore size={12} /> : <FiMaximize size={15} />}
+          {isMaximized ? (
+            <FaRegWindowRestore size={12} />
+          ) : (
+            <FiMaximize size={15} />
+          )}
         </button>
         <button
           onClick={() => appWindow.close()}

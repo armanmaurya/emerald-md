@@ -3,18 +3,30 @@ import { useTheme } from "../../context/ThemeContext";
 import { MdLightMode, MdDarkMode } from "react-icons/md";
 // import { IoSettings } from "react-icons/io5";
 import { useWorkspace } from "../../hooks/useWorkspace";
-import { performFileOpen } from "../../utils/fileSystem";
+import { performFileOpen, fileExists } from "../../utils/fileSystem";
+import { useToast } from "../../hooks/useToast";
 import { FaFolderOpen } from "react-icons/fa";
 import { IoLogoMarkdown } from "react-icons/io";
+import { motion } from "motion/react";
+import { useRef } from "react";
 
 type SideBarProps = {
   className?: string;
 };
 
 const SideBar = (props: SideBarProps) => {
-  const { addTab, recentFiles } = useWorkspace();
+  const { addTab, recentFiles, removeFromRecents } = useWorkspace();
   const { isSidebarOpen } = useLayout();
   const { theme, toggleTheme } = useTheme();
+  const { addToast } = useToast();
+
+  const themeButtonRef = useRef<HTMLButtonElement>(null);
+  const openFileButtonRef = useRef<HTMLButtonElement>(null);
+  const recentFileButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const handleThemeToggle = () => {
+    toggleTheme();
+  };
 
   const handleOpenFile = async () => {
     const result = await performFileOpen();
@@ -26,6 +38,15 @@ const SideBar = (props: SideBarProps) => {
   };
 
   const handleRecentFileClick = async (path: string) => {
+    // Check if file exists before opening
+    const exists = await fileExists(path);
+    if (!exists) {
+      // Remove file from recents if it doesn't exist
+      removeFromRecents(path);
+      addToast("File doesn't exist", "error", 3000);
+      return;
+    }
+
     const result = await performFileOpen(path);
     if (result) {
       const fileName = result.path.split("\\").pop() || "Untitled";
@@ -45,19 +66,28 @@ const SideBar = (props: SideBarProps) => {
         <div className="flex justify-between">
           <h2 className="text-xl font-bold">Options</h2>
           <button
-            onClick={toggleTheme}
+            ref={themeButtonRef}
+            onClick={handleThemeToggle}
             className="p-2 px-2 rounded transition-colors hover:cursor-pointer hover:bg-primary-bg dark:hover:bg-primary-bg-dark text-text-primary dark:text-text-primary-dark"
             title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
           >
-            {theme === "light" ? (
-              <MdDarkMode size={18} />
-            ) : (
-              <MdLightMode size={18} />
-            )}
+            <motion.div
+              key={theme}
+              initial={{ rotate: 0 }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            >
+              {theme === "light" ? (
+                <MdDarkMode size={18} />
+              ) : (
+                <MdLightMode size={18} />
+              )}
+            </motion.div>
           </button>
         </div>
         <div className="flex gap-2 py-2">
           <button
+            ref={openFileButtonRef}
             onClick={handleOpenFile}
             className="p-2 rounded flex items-center space-x-2 w-full justify-center hover:cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-hover-dark bg-surface-elevated dark:bg-surface-elevated-dark transition-all"
             title="Open File"
@@ -86,12 +116,15 @@ const SideBar = (props: SideBarProps) => {
                 return (
                   <button
                     key={index}
+                    ref={(el) => {
+                      recentFileButtonRefs.current[index] = el;
+                    }}
                     onClick={() => handleRecentFileClick(filePath)}
                     className="w-full hover:cursor-pointer text-left p-2 rounded text-sm hover:bg-surface-elevated dark:hover:bg-surface-elevated-dark transition-colors truncate"
                     title={filePath}
                   >
                     <div className="flex items-center space-x-2">
-                      <IoLogoMarkdown size={16}/>
+                      <IoLogoMarkdown size={16} />
                       <span className="truncate">{fileName}</span>
                     </div>
                   </button>

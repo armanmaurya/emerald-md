@@ -1,10 +1,10 @@
 import { Editor } from "@tiptap/react";
-import { createContext, useState, ReactNode, useEffect} from "react";
+import { createContext, useState, ReactNode, useEffect } from "react";
 import { createEditor } from "../utils/createEditor";
 import { performFileRename } from "../utils/fileSystem";
 import { v4 as uuidv4 } from "uuid";
 
-export type TabType = 'editor' | 'settings' | 'dashboard';
+export type TabType = "editor" | "settings" | "dashboard";
 
 export interface BaseTab {
   id: string;
@@ -12,20 +12,20 @@ export interface BaseTab {
 }
 
 export interface EditorTab extends BaseTab {
-  type: 'editor';
+  type: "editor";
   path?: string | null;
   state: Editor;
   isDirty: boolean;
-  viewMode?: 'source' | 'preview';
+  viewMode?: "source" | "preview";
 }
 
 export interface SettingsTab extends BaseTab {
-  type: 'settings';
-  category?: 'general' | 'appearance' | 'shortcuts';
+  type: "settings";
+  category?: "general" | "appearance" | "shortcuts";
 }
 
 export interface DashboardTab extends BaseTab {
-  type: 'dashboard';
+  type: "dashboard";
 }
 
 export type TabState = EditorTab | SettingsTab | DashboardTab;
@@ -44,6 +44,7 @@ type IWorkspace = {
   isRenamingTabId: string | null;
   setIsRenamingTabId: (id: string | null) => void;
   recentFiles: string[];
+  removeFromRecents: (path: string) => void;
   toggleViewMode: () => void;
   showConfirmDialog: boolean;
   setShowConfirmDialog: (show: boolean) => void;
@@ -56,17 +57,18 @@ type IWorkspace = {
 };
 
 export const WorkspaceContext = createContext<IWorkspace | undefined>(
-  undefined
+  undefined,
 );
 
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
-  
   const [tabs, setTabsState] = useState<TabState[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [isRenamingTabId, setIsRenamingTabId] = useState<string | null>(null);
   const [recentFiles, setRecentFiles] = useState<string[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [pendingCloseTabId, setPendingCloseTabId] = useState<string | null>(null);
+  const [pendingCloseTabId, setPendingCloseTabId] = useState<string | null>(
+    null,
+  );
   const [isSavingPendingTab, setIsSavingPendingTab] = useState(false);
 
   // Load recent files from storage on mount
@@ -92,15 +94,24 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const addTab = (type: TabType = 'editor', config: any = {}) => {
+  // Helper to remove a file from recents
+  const removeFromRecents = (path: string) => {
+    setRecentFiles((prev) => {
+      const updated = prev.filter((p) => p !== path);
+      localStorage.setItem("recent_files", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const addTab = (type: TabType = "editor", config: any = {}) => {
     const idToActivate = uuidv4();
-    
+
     setTabsState((prevTabs) => {
       let newTab: TabState;
 
-      if (type === 'settings') {
+      if (type === "settings") {
         // Check if settings tab already exists
-        const existingSettingsTab = prevTabs.find((t) => t.type === 'settings');
+        const existingSettingsTab = prevTabs.find((t) => t.type === "settings");
         if (existingSettingsTab) {
           setActiveTabId(existingSettingsTab.id);
           return prevTabs;
@@ -109,16 +120,16 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         // Create new Settings Tab
         newTab = {
           id: idToActivate,
-          type: 'settings',
-          title: 'Settings',
-          category: config.category || 'general'
+          type: "settings",
+          title: "Settings",
+          category: config.category || "general",
         } as SettingsTab;
-      } else if (type === 'dashboard') {
+      } else if (type === "dashboard") {
         // Create new Dashboard Tab
         newTab = {
           id: idToActivate,
-          type: 'dashboard',
-          title: 'Dashboard'
+          type: "dashboard",
+          title: "Dashboard",
         } as DashboardTab;
       } else {
         // Logic for creating an Editor Tab
@@ -129,9 +140,11 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         // If a path is provided, it's a real file, so add to recents
         if (path) {
           addToRecents(path);
-          
+
           // If tab with path already exists, focus it instead
-          const existingTab = prevTabs.find((t) => t.type === 'editor' && t.path === path);
+          const existingTab = prevTabs.find(
+            (t) => t.type === "editor" && t.path === path,
+          );
           if (existingTab) {
             setActiveTabId(existingTab.id);
             return prevTabs;
@@ -140,17 +153,24 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
         newTab = {
           id: idToActivate,
-          type: 'editor',
+          type: "editor",
           path: path,
-          title: title || `Untitled-${Math.max(...prevTabs
-            .filter(t => t.type === 'editor')
-            .map((t) => {
-              const match = t.title?.match(/Untitled-(\d+)/);
-              return match ? parseInt(match[1]) : 0;
-            }), 0) + 1}`,
+          title:
+            title ||
+            `Untitled-${
+              Math.max(
+                ...prevTabs
+                  .filter((t) => t.type === "editor")
+                  .map((t) => {
+                    const match = t.title?.match(/Untitled-(\d+)/);
+                    return match ? parseInt(match[1]) : 0;
+                  }),
+                0,
+              ) + 1
+            }`,
           state: createEditor({ content: content || "" }),
           isDirty: false,
-          viewMode: 'preview',
+          viewMode: "preview",
         } as EditorTab;
       }
 
@@ -165,7 +185,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
     // Check if tab is dirty (unsaved changes)
     const tabToRemove = tabs.find((tab) => tab.id === idToRemove);
-    if (tabToRemove?.type === 'editor' && tabToRemove.isDirty) {
+    if (tabToRemove?.type === "editor" && tabToRemove.isDirty) {
       // Show confirmation dialog instead of removing immediately
       setPendingCloseTabId(idToRemove);
       setShowConfirmDialog(true);
@@ -176,7 +196,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     if (activeTabId === idToRemove) {
       const currentIndex = tabs.findIndex((tab) => tab.id === idToRemove);
       const remainingTabs = tabs.filter((tab) => tab.id !== idToRemove);
-      
+
       if (remainingTabs.length > 0) {
         const nextActiveIndex = currentIndex > 0 ? currentIndex - 1 : 0;
         setActiveTabId(remainingTabs[nextActiveIndex].id);
@@ -184,7 +204,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         setActiveTabId(null);
       }
     }
-    
+
     setTabsState((prevTabs) => prevTabs.filter((tab) => tab.id !== idToRemove));
   };
 
@@ -205,12 +225,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const updateTab = (id: string, updates: Partial<EditorTab>) => {
     setTabsState((prevTabs) =>
       prevTabs.map((tab) => {
-        if (tab.id === id && tab.type === 'editor') {
+        if (tab.id === id && tab.type === "editor") {
           // Only allow updating EditorTabs
           return { ...tab, ...updates } as EditorTab;
         }
         return tab;
-      })
+      }),
     );
   };
 
@@ -228,7 +248,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     if (!tabToRename) return;
 
     // Only allow renaming for Editor tabs
-    if (tabToRename.type !== 'editor') return;
+    if (tabToRename.type !== "editor") return;
 
     // If it's a file tab, rename the file
     if (tabToRename.path) {
@@ -240,7 +260,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       // For unsaved tabs, just update the title
       updateTab(id, { title: newName } as Partial<EditorTab>);
     }
-    
+
     // Clear renaming state
     setIsRenamingTabId(null);
   };
@@ -248,9 +268,9 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const toggleViewMode = () => {
     if (!activeTabId) return;
     const activeTab = tabs.find((tab) => tab.id === activeTabId);
-    if (activeTab?.type === 'editor') {
-      const currentMode = activeTab.viewMode || 'preview';
-      const newMode = currentMode === 'preview' ? 'source' : 'preview';
+    if (activeTab?.type === "editor") {
+      const currentMode = activeTab.viewMode || "preview";
+      const newMode = currentMode === "preview" ? "source" : "preview";
       updateTab(activeTab.id, { viewMode: newMode } as Partial<EditorTab>);
     }
   };
@@ -259,31 +279,31 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     if (!pendingCloseTabId) return;
 
     const tabToSave = tabs.find((tab) => tab.id === pendingCloseTabId);
-    if (!tabToSave || tabToSave.type !== 'editor') return;
+    if (!tabToSave || tabToSave.type !== "editor") return;
 
     setIsSavingPendingTab(true);
-    
+
     // Import performFileSave dynamically to avoid circular dependencies
-    const { performFileSave } = await import('../utils/fileSystem');
-    
+    const { performFileSave } = await import("../utils/fileSystem");
+
     try {
       const saveSuccess = await performFileSave(tabToSave, updateTab);
-      
+
       // Only close the tab if save was successful
       if (!saveSuccess) {
         setIsSavingPendingTab(false);
         return; // Save was cancelled or failed, keep dialog open
       }
-      
+
       // Reset isDirty and close the tab
       updateTab(pendingCloseTabId, { isDirty: false } as Partial<EditorTab>);
-      
+
       // Now actually remove the tab
       const idToRemove = pendingCloseTabId;
       if (activeTabId === idToRemove) {
         const currentIndex = tabs.findIndex((tab) => tab.id === idToRemove);
         const remainingTabs = tabs.filter((tab) => tab.id !== idToRemove);
-        
+
         if (remainingTabs.length > 0) {
           const nextActiveIndex = currentIndex > 0 ? currentIndex - 1 : 0;
           setActiveTabId(remainingTabs[nextActiveIndex].id);
@@ -291,9 +311,11 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
           setActiveTabId(null);
         }
       }
-      
-      setTabsState((prevTabs) => prevTabs.filter((tab) => tab.id !== idToRemove));
-      
+
+      setTabsState((prevTabs) =>
+        prevTabs.filter((tab) => tab.id !== idToRemove),
+      );
+
       setShowConfirmDialog(false);
       setPendingCloseTabId(null);
     } finally {
@@ -306,13 +328,13 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
     // Set isDirty to false to bypass the check
     updateTab(pendingCloseTabId, { isDirty: false } as Partial<EditorTab>);
-    
+
     // Now remove the tab
     const idToRemove = pendingCloseTabId;
     if (activeTabId === idToRemove) {
       const currentIndex = tabs.findIndex((tab) => tab.id === idToRemove);
       const remainingTabs = tabs.filter((tab) => tab.id !== idToRemove);
-      
+
       if (remainingTabs.length > 0) {
         const nextActiveIndex = currentIndex > 0 ? currentIndex - 1 : 0;
         setActiveTabId(remainingTabs[nextActiveIndex].id);
@@ -320,9 +342,9 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         setActiveTabId(null);
       }
     }
-    
+
     setTabsState((prevTabs) => prevTabs.filter((tab) => tab.id !== idToRemove));
-    
+
     setShowConfirmDialog(false);
     setPendingCloseTabId(null);
   };
@@ -334,20 +356,21 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <WorkspaceContext.Provider
-      value={{ 
-        tabs, 
-        addTab, 
-        removeTab, 
-        updateTab, 
-        activeTabId, 
-        setActiveTabId, 
-        focusNext, 
-        focusPrev, 
-        reorderTabs, 
-        renameTab, 
-        isRenamingTabId, 
-        setIsRenamingTabId, 
-        recentFiles, 
+      value={{
+        tabs,
+        addTab,
+        removeTab,
+        updateTab,
+        activeTabId,
+        setActiveTabId,
+        focusNext,
+        focusPrev,
+        reorderTabs,
+        renameTab,
+        isRenamingTabId,
+        setIsRenamingTabId,
+        recentFiles,
+        removeFromRecents,
         toggleViewMode,
         showConfirmDialog,
         setShowConfirmDialog,
