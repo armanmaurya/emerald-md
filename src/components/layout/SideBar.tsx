@@ -9,6 +9,7 @@ import { FaFolderOpen } from "react-icons/fa";
 import { IoLogoMarkdown } from "react-icons/io";
 import { motion } from "motion/react";
 import { useRef } from "react";
+import { CgClose } from "react-icons/cg";
 
 type SideBarProps = {
   className?: string;
@@ -120,12 +121,21 @@ const SideBar = (props: SideBarProps) => {
                       recentFileButtonRefs.current[index] = el;
                     }}
                     onClick={() => handleRecentFileClick(filePath)}
-                    className="w-full hover:cursor-pointer text-left p-2 rounded text-sm hover:bg-surface-elevated dark:hover:bg-surface-elevated-dark transition-colors truncate"
+                    className="w-full hover:cursor-pointer group flex items-center justify-between text-left p-2 rounded text-sm hover:bg-surface-elevated dark:hover:bg-surface-elevated-dark transition-colors truncate"
                     title={filePath}
                   >
                     <div className="flex items-center space-x-2">
                       <IoLogoMarkdown size={16} />
                       <span className="truncate">{fileName}</span>
+                    </div>
+                    <div
+                      onClick={(e) => {
+                        removeFromRecents(filePath);
+                        e.stopPropagation();
+                      }}
+                      className="group-hover:opacity-100 opacity-0 transition-opacity"
+                    >
+                      <CgClose size={12} />
                     </div>
                   </button>
                 );

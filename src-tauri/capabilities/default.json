@@ -2,9 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": [
-    "main"
-  ],
+  "windows": ["main", "window-*"],
   "permissions": [
     "core:default",
     "opener:default",
@@ -15,21 +13,15 @@
     "core:window:allow-toggle-maximize",
     {
       "identifier": "fs:allow-read-text-file",
-      "allow": [
-        "**"
-      ]
+      "allow": ["**"]
     },
     {
       "identifier": "fs:allow-write-text-file",
-      "allow": [
-        "**"
-      ]
+      "allow": ["**"]
     },
     {
       "identifier": "fs:allow-remove",
-      "allow": [
-        "**"
-      ]
+      "allow": ["**"]
     },
     "dialog:default",
     "fs:default"
