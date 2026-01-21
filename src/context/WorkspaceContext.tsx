@@ -223,6 +223,11 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateTab = (id: string, updates: Partial<EditorTab>) => {
+    // If updating with a new path that's not in recent, add it
+    if (updates.path && !recentFiles.includes(updates.path)) {
+      addToRecents(updates.path);
+    }
+
     setTabsState((prevTabs) =>
       prevTabs.map((tab) => {
         if (tab.id === id && tab.type === "editor") {

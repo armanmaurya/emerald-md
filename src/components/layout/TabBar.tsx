@@ -12,7 +12,10 @@ import {
   horizontalListSortingStrategy,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
-import { restrictToHorizontalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
+import {
+  restrictToHorizontalAxis,
+  restrictToParentElement,
+} from "@dnd-kit/modifiers";
 import { FaPlus } from "react-icons/fa";
 import SortableItem from "../ui/SortableItem";
 import Tab from "../ui/Tab";
@@ -24,11 +27,22 @@ interface TabBarProps {
 }
 
 export const TabBar = ({ tabRefs, tabsContainerRef }: TabBarProps) => {
-  const { tabs, activeTabId, setActiveTabId, removeTab, addTab, reorderTabs, renameTab, isRenamingTabId, setIsRenamingTabId } =
-    useWorkspace();
+  const {
+    tabs,
+    activeTabId,
+    setActiveTabId,
+    removeTab,
+    addTab,
+    reorderTabs,
+    renameTab,
+    isRenamingTabId,
+    setIsRenamingTabId,
+  } = useWorkspace();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -47,10 +61,10 @@ export const TabBar = ({ tabRefs, tabsContainerRef }: TabBarProps) => {
       onDragEnd={handleDragEnd}
       modifiers={[restrictToHorizontalAxis, restrictToParentElement]}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 pl-1">
         <div
           ref={tabsContainerRef}
-          className="select-none h-full items-center flex gap-1"
+          className="select-none h-full items-center flex gap-0"
         >
           <SortableContext
             items={tabs.map((t) => t.id)}
@@ -71,13 +85,25 @@ export const TabBar = ({ tabRefs, tabsContainerRef }: TabBarProps) => {
                 <Tab
                   title={tab.title || "Untitled"}
                   isActive={activeTabId === tab.id}
-                  isDirty={tab.type === 'editor' ? tab.isDirty : undefined}
+                  isDirty={tab.type === "editor" ? tab.isDirty : undefined}
                   tabType={tab.type}
                   onActivate={() => setActiveTabId(tab.id)}
                   onClose={() => removeTab(tab.id)}
-                  onRename={tab.type === 'editor' ? (newName) => renameTab(tab.id, newName) : undefined}
-                  isRenaming={tab.type === 'editor' ? isRenamingTabId === tab.id : undefined}
-                  onCancelRename={tab.type === 'editor' ? () => setIsRenamingTabId(null) : undefined}
+                  onRename={
+                    tab.type === "editor"
+                      ? (newName) => renameTab(tab.id, newName)
+                      : undefined
+                  }
+                  isRenaming={
+                    tab.type === "editor"
+                      ? isRenamingTabId === tab.id
+                      : undefined
+                  }
+                  onCancelRename={
+                    tab.type === "editor"
+                      ? () => setIsRenamingTabId(null)
+                      : undefined
+                  }
                 />
               </SortableItem>
             ))}

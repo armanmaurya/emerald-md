@@ -1,6 +1,6 @@
 import { CgClose } from "react-icons/cg";
 import { GoDotFill } from "react-icons/go";
-import { IoSettings  } from "react-icons/io5";
+import { IoSettings } from "react-icons/io5";
 import { MdDashboard } from "react-icons/md";
 import { useState, useRef, useEffect } from "react";
 import AutowidthInput from "react-autowidth-input";
@@ -19,12 +19,22 @@ interface TabProps {
   onCancelRename?: () => void;
 }
 
-const Tab = ({ title, isActive, isDirty = false, tabType, onActivate, onClose, onRename, isRenaming: externalIsRenaming, onCancelRename }: TabProps) => {
+const Tab = ({
+  title,
+  isActive,
+  isDirty = false,
+  tabType,
+  onActivate,
+  onClose,
+  onRename,
+  isRenaming: externalIsRenaming,
+  onCancelRename,
+}: TabProps) => {
   const [isRenaming, setIsRenaming] = useState(false);
   const [inputValue, setInputValue] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
-  
-  const canRename = tabType === 'editor';
+
+  const canRename = tabType === "editor";
 
   useEffect(() => {
     if (isRenaming && inputRef.current) {
@@ -70,49 +80,68 @@ const Tab = ({ title, isActive, isDirty = false, tabType, onActivate, onClose, o
 
   const getTabIcon = () => {
     switch (tabType) {
-      case 'settings':
+      case "settings":
         return <IoSettings size={16} />;
-      case 'dashboard':
+      case "dashboard":
         return <MdDashboard size={14} />;
-      case 'editor':
+      case "editor":
       default:
         return <IoLogoMarkdown size={18} />;
     }
   };
 
   return (
-    <div
-      onClick={onActivate}
-      className={`p-2 h-full flex items-center space-x-2 px-2 hover:cursor-pointer text-text-primary dark:text-text-primary-dark rounded-t-lg whitespace-nowrap ${
-        isActive ? "bg-surface-elevated dark:bg-primary-bg-dark" : "hover:bg-surface-hover dark:hover:bg-surface-hover-dark"
-      }`}
-    >
-      {getTabIcon()}
-      {isRenaming ? (
-        <AutowidthInput
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={(event) => setInputValue(event.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={handleRename}
-          onClick={(e) => e.stopPropagation()}
-          className="text-text-primary dark:text-text-primary-dark bg-transparent"
-        />
-      ) : (
-        <span onDoubleClick={handleDoubleClick}>{title}</span>
+    <div className="relative h-full">
+      {/* Left inverted corner */}
+      {isActive && (
+        <div className="absolute -left-2 bottom-0 w-2 h-2 pointer-events-none">
+          <div className="absolute inset-0 bg-surface-elevated dark:bg-primary-bg-dark" />
+          <div className="absolute inset-0 bg-surface dark:bg-surface-dark rounded-br-lg" />
+        </div>
       )}
-      {isDirty && tabType === 'editor' ? (
-        <GoDotFill className="text-accent" size={12} />
-      ) : (
-        <CgClose
-          size={12}
-          className="hover:text-red-500 transition-colors"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-        />
+
+      {/* Main tab */}
+      <div
+        onClick={onActivate}
+        className={`p-2 h-full flex items-center space-x-2 px-2 hover:cursor-pointer text-text-primary dark:text-text-primary-dark rounded-t-lg whitespace-nowrap ${
+          isActive ? "bg-surface-elevated dark:bg-primary-bg-dark" : ""
+        }`}
+      >
+        {getTabIcon()}
+        {isRenaming ? (
+          <AutowidthInput
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={(event) => setInputValue(event.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleRename}
+            onClick={(e) => e.stopPropagation()}
+            className="text-text-primary dark:text-text-primary-dark bg-transparent"
+          />
+        ) : (
+          <span onDoubleClick={handleDoubleClick}>{title}</span>
+        )}
+        {isDirty && tabType === "editor" ? (
+          <GoDotFill className="text-accent" size={12} />
+        ) : (
+          <CgClose
+            size={12}
+            className="hover:text-red-500 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+          />
+        )}
+      </div>
+
+      {/* Right inverted corner */}
+      {isActive && (
+        <div className="absolute -right-2 bottom-0 w-2 h-2 pointer-events-none">
+          <div className="absolute inset-0 bg-surface-elevated dark:bg-primary-bg-dark" />
+          <div className="absolute inset-0 bg-surface dark:bg-surface-dark rounded-bl-lg" />
+        </div>
       )}
     </div>
   );
