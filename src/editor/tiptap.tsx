@@ -23,7 +23,7 @@ const customTheme = EditorView.theme({
   ".cm-content": {
     fontFamily: "Inter, system-ui, sans-serif !important",
   },
-  // This targets the line numbers (usually better to keep these mono, 
+  // This targets the line numbers (usually better to keep these mono,
   // but you can change them too)
   ".cm-gutters": {
     backgroundColor: "transparent !important",
