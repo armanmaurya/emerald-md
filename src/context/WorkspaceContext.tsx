@@ -45,6 +45,7 @@ type IWorkspace = {
   setIsRenamingTabId: (id: string | null) => void;
   recentFiles: string[];
   removeFromRecents: (path: string) => void;
+  clearRecents: () => void;
   toggleViewMode: () => void;
   showConfirmDialog: boolean;
   setShowConfirmDialog: (show: boolean) => void;
@@ -54,6 +55,9 @@ type IWorkspace = {
   handleConfirmDiscard: () => void;
   handleConfirmCancel: () => void;
   isSavingPendingTab: boolean;
+  duplicateTab: (id: string) => void;
+  closeOthers: (id: string) => void;
+  closeAll: () => void;
 };
 
 export const WorkspaceContext = createContext<IWorkspace | undefined>(
@@ -101,6 +105,12 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("recent_files", JSON.stringify(updated));
       return updated;
     });
+  };
+
+  // Helper to clear all recent files
+  const clearRecents = () => {
+    setRecentFiles([]);
+    localStorage.setItem("recent_files", JSON.stringify([]));
   };
 
   const addTab = (type: TabType = "editor", config: any = {}) => {
@@ -359,6 +369,58 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     setPendingCloseTabId(null);
   };
 
+  const duplicateTab = (id: string) => {
+    const tabToDuplicate = tabs.find((tab) => tab.id === id);
+    if (!tabToDuplicate || tabToDuplicate.type !== "editor") return;
+
+    // Get the content from the editor state
+    const markdown = tabToDuplicate.state.getMarkdown();
+
+    // Create a new tab with the same content
+    addTab("editor", {
+      path: null, // Don't use the same path
+      title: `${tabToDuplicate.title} (copy)`,
+      content: markdown,
+    });
+  };
+
+  const closeOthers = (id: string) => {
+    const tabToKeep = tabs.find((tab) => tab.id === id);
+    if (!tabToKeep) return;
+
+    // Find all dirty editor tabs except the one to keep
+    const dirtyTabs = tabs.filter(
+      (tab) => tab.id !== id && tab.type === "editor" && tab.isDirty,
+    );
+
+    if (dirtyTabs.length > 0) {
+      // If there are dirty tabs, show confirmation for each
+      // For now, just close all without saving (can be enhanced)
+      setTabsState((prevTabs) => [prevTabs.find((t) => t.id === id)!]);
+      setActiveTabId(id);
+    } else {
+      setTabsState((prevTabs) => [prevTabs.find((t) => t.id === id)!]);
+      setActiveTabId(id);
+    }
+  };
+
+  const closeAll = () => {
+    // Find all dirty editor tabs
+    const dirtyTabs = tabs.filter(
+      (tab) => tab.type === "editor" && tab.isDirty,
+    );
+
+    if (dirtyTabs.length > 0) {
+      // If there are dirty tabs, show confirmation
+      // For now, just close all without saving (can be enhanced)
+      setTabsState([]);
+      setActiveTabId(null);
+    } else {
+      setTabsState([]);
+      setActiveTabId(null);
+    }
+  };
+
   return (
     <WorkspaceContext.Provider
       value={{
@@ -376,6 +438,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         setIsRenamingTabId,
         recentFiles,
         removeFromRecents,
+        clearRecents,
         toggleViewMode,
         showConfirmDialog,
         setShowConfirmDialog,
@@ -385,6 +448,9 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         handleConfirmDiscard,
         handleConfirmCancel,
         isSavingPendingTab,
+        duplicateTab,
+        closeOthers,
+        closeAll,
       }}
     >
       {children}

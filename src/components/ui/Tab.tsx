@@ -6,6 +6,10 @@ import { useState, useRef, useEffect } from "react";
 import AutowidthInput from "react-autowidth-input";
 import { TabType } from "../../context/WorkspaceContext";
 import { IoLogoMarkdown } from "react-icons/io";
+import ContextMenu, { MenuItem } from "./ContextMenu";
+import { MdEdit } from "react-icons/md";
+import { CgCopy } from "react-icons/cg";
+import { FaFolderOpen } from "react-icons/fa";
 
 interface TabProps {
   title: string;
@@ -17,6 +21,12 @@ interface TabProps {
   onRename?: (newName: string) => void;
   isRenaming?: boolean;
   onCancelRename?: () => void;
+  onDuplicate?: () => void;
+  onRevealInExplorer?: () => void;
+  onCloseOthers?: () => void;
+  onCloseAll?: () => void;
+  totalTabs?: number;
+  tabPath?: string;
 }
 
 const Tab = ({
@@ -29,10 +39,17 @@ const Tab = ({
   onRename,
   isRenaming: externalIsRenaming,
   onCancelRename,
+  onDuplicate,
+  onRevealInExplorer,
+  onCloseOthers,
+  onCloseAll,
+  totalTabs = 1,
+  tabPath,
 }: TabProps) => {
   const [isRenaming, setIsRenaming] = useState(false);
   const [inputValue, setInputValue] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [contextMenu, setContextMenu] = useState({ x: 0, y: 0, isOpen: false });
 
   const canRename = tabType === "editor";
 
@@ -90,8 +107,78 @@ const Tab = ({
     }
   };
 
+  const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, isOpen: true });
+  };
+
+  const getContextMenuItems = (): MenuItem[] => {
+    const items: MenuItem[] = [];
+
+    if (tabType === "editor") {
+      items.push({
+        id: "rename",
+        label: "Rename",
+        icon: <MdEdit size={16} />,
+        onClick: () => {
+          setIsRenaming(true);
+          setInputValue(title);
+        },
+      });
+
+      items.push({
+        id: "duplicate",
+        label: "Duplicate",
+        icon: <CgCopy size={16} />,
+        onClick: () => onDuplicate?.(),
+      });
+
+      items.push({
+        id: "reveal",
+        label: "Reveal in Explorer",
+        icon: <FaFolderOpen size={16} />,
+        onClick: () => onRevealInExplorer?.(),
+        disabled: !tabPath,
+      });
+    }
+
+    items.push({
+      id: "close",
+      label: "Close",
+      isDanger: true,
+      onClick: () => onClose(),
+    });
+
+    if (totalTabs > 1) {
+      items.push({
+        id: "closeOthers",
+        label: "Close Others",
+        isDanger: true,
+        onClick: () => onCloseOthers?.(),
+      });
+
+      items.push({
+        id: "closeAll",
+        label: "Close All",
+        isDanger: true,
+        onClick: () => onCloseAll?.(),
+      });
+    }
+
+    return items;
+  };
+
   return (
     <div className="relative h-full">
+      <ContextMenu
+        items={getContextMenuItems()}
+        x={contextMenu.x}
+        y={contextMenu.y}
+        isOpen={contextMenu.isOpen}
+        onClose={() => setContextMenu({ ...contextMenu, isOpen: false })}
+      />
+
       {/* Left inverted corner */}
       {isActive && (
         <div className="absolute -left-2 bottom-0 w-2 h-2 pointer-events-none">
@@ -103,6 +190,7 @@ const Tab = ({
       {/* Main tab */}
       <div
         onClick={onActivate}
+        onContextMenu={handleContextMenu}
         className={`p-2 h-full flex items-center space-x-2 px-2 hover:cursor-pointer text-text-primary dark:text-text-primary-dark rounded-t-lg whitespace-nowrap ${
           isActive ? "bg-surface-elevated dark:bg-primary-bg-dark" : ""
         }`}

@@ -20,6 +20,7 @@ import { FaPlus } from "react-icons/fa";
 import SortableItem from "../ui/SortableItem";
 import Tab from "../ui/Tab";
 import { useWorkspace } from "../../hooks/useWorkspace";
+import { revealInFileExplorer } from "../../utils/fileSystem";
 
 interface TabBarProps {
   tabRefs: React.MutableRefObject<Map<string, HTMLDivElement>>;
@@ -37,6 +38,9 @@ export const TabBar = ({ tabRefs, tabsContainerRef }: TabBarProps) => {
     renameTab,
     isRenamingTabId,
     setIsRenamingTabId,
+    duplicateTab,
+    closeOthers,
+    closeAll,
   } = useWorkspace();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -104,6 +108,21 @@ export const TabBar = ({ tabRefs, tabsContainerRef }: TabBarProps) => {
                       ? () => setIsRenamingTabId(null)
                       : undefined
                   }
+                  onDuplicate={() => duplicateTab(tab.id)}
+                  onCloseOthers={() => closeOthers(tab.id)}
+                  onCloseAll={() => closeAll()}
+                  totalTabs={tabs.length}
+                  onRevealInExplorer={
+                    tab.type === "editor" && tab.path
+                      ? async () => {
+                          try {
+                            await revealInFileExplorer(tab.path!);
+                          } catch {
+                          }
+                        }
+                      : undefined
+                  }
+                  tabPath={tab.type === "editor" ? tab.path || undefined : undefined}
                 />
               </SortableItem>
             ))}

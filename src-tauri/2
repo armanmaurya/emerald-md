@@ -1,7 +1,12 @@
 
-changed 1 package, and audited 172 packages in 4s
+changed 1 package, and audited 222 packages in 4s
 
-47 packages are looking for funding
+58 packages are looking for funding
   run `npm fund` for details
 
-found 0 vulnerabilities
+2 moderate severity vulnerabilities
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.

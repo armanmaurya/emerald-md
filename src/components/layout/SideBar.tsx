@@ -3,20 +3,21 @@ import { useTheme } from "../../context/ThemeContext";
 import { MdLightMode, MdDarkMode } from "react-icons/md";
 // import { IoSettings } from "react-icons/io5";
 import { useWorkspace } from "../../hooks/useWorkspace";
-import { performFileOpen, fileExists } from "../../utils/fileSystem";
+import { performFileOpen, fileExists, revealInFileExplorer } from "../../utils/fileSystem";
 import { useToast } from "../../hooks/useToast";
 import { FaFolderOpen } from "react-icons/fa";
 import { IoLogoMarkdown } from "react-icons/io";
 import { motion } from "motion/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { CgClose } from "react-icons/cg";
+import ContextMenu, { MenuItem } from "../ui/ContextMenu";
 
 type SideBarProps = {
   className?: string;
 };
 
 const SideBar = (props: SideBarProps) => {
-  const { addTab, recentFiles, removeFromRecents } = useWorkspace();
+  const { addTab, recentFiles, removeFromRecents, clearRecents } = useWorkspace();
   const { isSidebarOpen } = useLayout();
   const { theme, toggleTheme } = useTheme();
   const { addToast } = useToast();
@@ -24,6 +25,12 @@ const SideBar = (props: SideBarProps) => {
   const themeButtonRef = useRef<HTMLButtonElement>(null);
   const openFileButtonRef = useRef<HTMLButtonElement>(null);
   const recentFileButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    isOpen: boolean;
+    filePath?: string;
+  }>({ x: 0, y: 0, isOpen: false });
 
   const handleThemeToggle = () => {
     toggleTheme();
@@ -56,6 +63,72 @@ const SideBar = (props: SideBarProps) => {
     }
   };
 
+  const handleRecentFileContextMenu = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    filePath: string,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, isOpen: true, filePath });
+  };
+
+  const getRecentFileContextMenuItems = (filePath: string): MenuItem[] => {
+    return [
+      {
+        id: "open",
+        label: "Open",
+        onClick: () => handleRecentFileClick(filePath),
+      },
+      {
+        id: "open-new-tab",
+        label: "Open in New Tab",
+        onClick: async () => {
+          const exists = await fileExists(filePath);
+          if (!exists) {
+            removeFromRecents(filePath);
+            addToast("File doesn't exist", "error", 3000);
+            return;
+          }
+
+          const result = await performFileOpen(filePath);
+          if (result) {
+            const fileName = result.path.split("\\").pop() || "Untitled";
+            const title = fileName.replace(/\.md$/, "");
+            addTab("editor", {
+              path: result.path,
+              title,
+              content: result.content,
+            });
+          }
+        },
+      },
+      {
+        id: "reveal",
+        label: "Reveal in Explorer",
+        icon: <FaFolderOpen size={16} />,
+        onClick: async () => {
+          try {
+            await revealInFileExplorer(filePath);
+          } catch {
+            addToast("Failed to reveal file", "error", 3000);
+          }
+        },
+      },
+      {
+        id: "remove",
+        label: "Remove from Recent",
+        isDanger: true,
+        onClick: () => removeFromRecents(filePath),
+      },
+      {
+        id: "clear-all",
+        label: "Clear All Recent",
+        isDanger: true,
+        onClick: () => clearRecents(),
+      },
+    ];
+  };
+
   return (
     <aside
       className={`top-0 h-screen fixed bg-surface dark:bg-surface-dark dark:text-primary-bg transition-all duration-300 ease-in-out z-10 ${
@@ -63,6 +136,17 @@ const SideBar = (props: SideBarProps) => {
       } ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       style={{ width: "16rem" }}
     >
+      <ContextMenu
+        items={
+          contextMenu.filePath
+            ? getRecentFileContextMenuItems(contextMenu.filePath)
+            : []
+        }
+        x={contextMenu.x}
+        y={contextMenu.y}
+        isOpen={contextMenu.isOpen}
+        onClose={() => setContextMenu({ ...contextMenu, isOpen: false })}
+      />
       <div className="p-4">
         <div className="flex justify-between">
           <h2 className="text-xl font-bold">Options</h2>
@@ -121,6 +205,9 @@ const SideBar = (props: SideBarProps) => {
                       recentFileButtonRefs.current[index] = el;
                     }}
                     onClick={() => handleRecentFileClick(filePath)}
+                    onContextMenu={(e) =>
+                      handleRecentFileContextMenu(e, filePath)
+                    }
                     className="w-full hover:cursor-pointer group flex items-center justify-between text-left p-2 rounded text-sm hover:bg-surface-elevated dark:hover:bg-surface-elevated-dark transition-colors truncate"
                     title={filePath}
                   >

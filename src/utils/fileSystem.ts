@@ -1,5 +1,6 @@
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile, remove } from "@tauri-apps/plugin-fs";
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { TabState } from "../context/WorkspaceContext";
 
 export const fileExists = async (filePath: string): Promise<boolean> => {
@@ -107,5 +108,14 @@ export const performFileRename = async (oldPath: string, newName: string) => {
   } catch (error) {
     console.error("Failed to rename file:", error);
     return null;
+  }
+};
+
+export const revealInFileExplorer = async (filePath: string) => {
+  try {
+    await revealItemInDir(filePath);
+  } catch (error) {
+    console.error("Failed to reveal file in explorer:", error);
+    throw error;
   }
 };
