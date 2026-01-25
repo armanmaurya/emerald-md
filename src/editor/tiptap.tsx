@@ -1,8 +1,11 @@
 import { EditorContent, Editor } from "@tiptap/react";
 import { useState, useEffect, useRef } from "react";
 import { FaCode } from "react-icons/fa";
+import { PiExportBold } from "react-icons/pi";
 import { FaEye } from "react-icons/fa";
 import { useWorkspace } from "../hooks/useWorkspace";
+import { exportToPDF } from "../utils/pdfExport";
+import { useToast } from "../hooks/useToast";
 
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
@@ -41,8 +44,10 @@ const Tiptap = ({
   onViewModeChange,
 }: TiptapProps) => {
   const [sourceContent, setSourceContent] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
   const codeMirrorRef = useRef<any>(null);
-  const { activeTabId, updateTab } = useWorkspace();
+  const { activeTabId, updateTab, tabs } = useWorkspace();
+  const { addToast } = useToast();
   const isInitialMount = useRef(true);
 
   // Reset isInitialMount when editor instance changes
@@ -113,10 +118,37 @@ const Tiptap = ({
     }
   };
 
+  const handleExportPDF = async () => {
+    try {
+      setIsExporting(true);
+      
+      // Get the filename from the active tab
+      const activeTab = tabs.find((tab) => tab.id === activeTabId);
+      let filename = 'document.pdf';
+      
+      if (activeTab && activeTab.type === 'editor') {
+        filename = `${activeTab.title}.pdf`;
+      }
+
+      const htmlContent = editor.getHTML();
+      const filePath = await exportToPDF(htmlContent, { filename });
+      
+      if (filePath) {
+        addToast('PDF exported successfully', 'success', 3000);
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      addToast('Failed to export PDF', 'error', 3000);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col px-3 pt-2">
       {/* Status Bar */}
-      <div className="flex fixed right-0 bottom-0 justify-end bg-surface-elevated dark:bg-surface-elevated-dark px-2 py-1 rounded-tl-lg z-10">
+      <div className="flex fixed right-0 bottom-0 justify-end gap-2 bg-surface-elevated dark:bg-surface-elevated-dark px-2 py-1 rounded-tl-lg z-10">
+       
         <button
           onClick={handleToggleMode}
           title="Toggle Preview"
@@ -131,6 +163,16 @@ const Tiptap = ({
               <FaEye size={12} />
             </span>
           )}
+        </button>
+         <button
+          onClick={handleExportPDF}
+          disabled={isExporting}
+          title="Export to PDF"
+          className={`text-text-secondary dark:text-text-secondary-dark hover:cursor-pointer hover:text-text-primary dark:hover:text-text-primary-dark ${isExporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <span className="flex font-bold items-center gap-2">
+            <PiExportBold size={12} />
+          </span>
         </button>
       </div>
 

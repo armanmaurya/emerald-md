@@ -4,14 +4,15 @@ import { IoSettings } from "react-icons/io5";
 import { MdDashboard } from "react-icons/md";
 import { useState, useRef, useEffect } from "react";
 import AutowidthInput from "react-autowidth-input";
-import { TabType } from "../../context/WorkspaceContext";
+import { TabType, TabState } from "../../context/WorkspaceContext";
 import { IoLogoMarkdown } from "react-icons/io";
 import ContextMenu, { MenuItem } from "./ContextMenu";
 import { MdEdit } from "react-icons/md";
-import { CgCopy } from "react-icons/cg";
-import { FaFolderOpen } from "react-icons/fa";
+import { exportToPDF } from "../../utils/pdfExport";
+import { useToast } from "../../hooks/useToast";
 
 interface TabProps {
+  tab: TabState;
   title: string;
   isActive: boolean;
   isDirty?: boolean;
@@ -30,6 +31,7 @@ interface TabProps {
 }
 
 const Tab = ({
+  tab,
   title,
   isActive,
   isDirty = false,
@@ -50,6 +52,7 @@ const Tab = ({
   const [inputValue, setInputValue] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
   const [contextMenu, setContextMenu] = useState({ x: 0, y: 0, isOpen: false });
+  const { addToast } = useToast();
 
   const canRename = tabType === "editor";
 
@@ -130,14 +133,30 @@ const Tab = ({
       items.push({
         id: "duplicate",
         label: "Duplicate",
-        icon: <CgCopy size={16} />,
         onClick: () => onDuplicate?.(),
+      });
+
+      items.push({
+        id: "export",
+        label: "Export to PDF",
+        onClick: async () => {
+          if (tab.type === 'editor') {
+            try {
+              const htmlContent = tab.state.getHTML();
+              const filePath = await exportToPDF(htmlContent, { filename: `${title}.pdf` });
+              if (filePath) {
+                addToast('PDF exported successfully', 'success', 3000);
+              }
+            } catch (error) {
+              addToast('Failed to export PDF', 'error', 3000);
+            }
+          }
+        },
       });
 
       items.push({
         id: "reveal",
         label: "Reveal in Explorer",
-        icon: <FaFolderOpen size={16} />,
         onClick: () => onRevealInExplorer?.(),
         disabled: !tabPath,
       });

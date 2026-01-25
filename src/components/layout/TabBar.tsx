@@ -87,6 +87,7 @@ export const TabBar = ({ tabRefs, tabsContainerRef }: TabBarProps) => {
                 }
               >
                 <Tab
+                  tab={tab}
                   title={tab.title || "Untitled"}
                   isActive={activeTabId === tab.id}
                   isDirty={tab.type === "editor" ? tab.isDirty : undefined}

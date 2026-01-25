@@ -3,7 +3,11 @@ import { useTheme } from "../../context/ThemeContext";
 import { MdLightMode, MdDarkMode } from "react-icons/md";
 // import { IoSettings } from "react-icons/io5";
 import { useWorkspace } from "../../hooks/useWorkspace";
-import { performFileOpen, fileExists, revealInFileExplorer } from "../../utils/fileSystem";
+import {
+  performFileOpen,
+  fileExists,
+  revealInFileExplorer,
+} from "../../utils/fileSystem";
 import { useToast } from "../../hooks/useToast";
 import { FaFolderOpen } from "react-icons/fa";
 import { IoLogoMarkdown } from "react-icons/io";
@@ -17,7 +21,8 @@ type SideBarProps = {
 };
 
 const SideBar = (props: SideBarProps) => {
-  const { addTab, recentFiles, removeFromRecents, clearRecents } = useWorkspace();
+  const { addTab, recentFiles, removeFromRecents, clearRecents } =
+    useWorkspace();
   const { isSidebarOpen } = useLayout();
   const { theme, toggleTheme } = useTheme();
   const { addToast } = useToast();
@@ -105,7 +110,6 @@ const SideBar = (props: SideBarProps) => {
       {
         id: "reveal",
         label: "Reveal in Explorer",
-        icon: <FaFolderOpen size={16} />,
         onClick: async () => {
           try {
             await revealInFileExplorer(filePath);

@@ -6,11 +6,22 @@
   "permissions": [
     "core:default",
     "opener:default",
+    "opener:allow-open-path",
+    {
+      "identifier": "opener:allow-open-path",
+      "allow": [
+        {
+          "path": "**"
+        }
+      ]
+    },
     "core:window:default",
     "core:window:allow-start-dragging",
     "core:window:allow-close",
     "core:window:allow-minimize",
     "core:window:allow-toggle-maximize",
+    "dialog:default",
+    "fs:default",
     {
       "identifier": "fs:allow-read-text-file",
       "allow": ["**"]
@@ -20,10 +31,12 @@
       "allow": ["**"]
     },
     {
-      "identifier": "fs:allow-remove",
+      "identifier": "fs:allow-write-file", 
       "allow": ["**"]
     },
-    "dialog:default",
-    "fs:default"
+    {
+      "identifier": "fs:allow-remove",
+      "allow": ["**"]
+    }
   ]
 }
