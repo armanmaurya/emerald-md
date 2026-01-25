@@ -153,7 +153,7 @@ const SideBar = (props: SideBarProps) => {
       />
       <div className="p-4">
         <div className="flex justify-between">
-          <h2 className="text-xl font-bold">Options</h2>
+          <div className="text-xl font-bold">Options</div>
           <button
             ref={themeButtonRef}
             onClick={handleThemeToggle}
@@ -195,9 +195,9 @@ const SideBar = (props: SideBarProps) => {
         {/* Recent Files Section */}
         {recentFiles.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold mb-2 text-text-secondary dark:text-text-secondary-dark">
+            <div className="text-sm font-semibold mb-2 text-text-secondary dark:text-text-secondary-dark">
               Recent Files
-            </h3>
+            </div>
             <div className="space-y-1">
               {recentFiles.map((filePath, index) => {
                 const fileName =

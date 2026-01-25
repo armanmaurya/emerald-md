@@ -37,55 +37,52 @@ export const exportToPDF = async (
     // Apply exact editor styling from App.css
     const style = document.createElement('style');
     style.textContent = `
-      /* Base editor rhythm */
-      * { line-height: 1.6; }
-      
       /* Paragraphs - compact like editor */
-      p { margin-top: 0.4em; margin-bottom: 0.4em; }
+      p { margin-top: 0.4em; margin-bottom: 0.4em; line-height: 1.6; }
       
       /* Headings - compact, editor-friendly */
       h1 { font-size: 2.25em; font-weight: 800; margin-top: 0.3em; margin-bottom: 0.2em; line-height: 1.1111111; }
       h2 { font-size: 1.5em; font-weight: 700; margin-top: 0.25em; margin-bottom: 0.1em; line-height: 1.3333333; }
       h3 { font-size: 1.25rem; font-weight: 600; margin-top: 0.2em; margin-bottom: 0.1em; line-height: 1.35; }
-      h4, h5, h6 { font-weight: 600; margin-top: 0.15em; margin-bottom: 0.08em; }
+      h4, h5, h6 { font-weight: 600; margin-top: 0.15em; margin-bottom: 0.08em; line-height: 1.5; }
       
       /* Lists */
-      ul, ol { padding-left: 1.625em; }
+      ul, ol { padding-left: 1.625em; line-height: 1.6; }
       
       /* Task Lists */
-      ul[data-type="taskList"] { list-style: none; padding: 0; }
-      ul[data-type="taskList"] li { display: flex; align-items: center; }
-      ul[data-type="taskList"] li div { padding-right: 8px; padding-left: 8px; }
-      li[data-checked="true"] > div { text-decoration: line-through; opacity: 0.6; }
+      ul[data-type="taskList"] { list-style: none; padding: 0; line-height: 1.6; }
+      ul[data-type="taskList"] li { display: flex; align-items: center; line-height: 1.6; }
+      ul[data-type="taskList"] li div { padding-right: 8px; padding-left: 8px; line-height: 1.6; }
+      li[data-checked="true"] > div { text-decoration: line-through; opacity: 0.6; line-height: 1.6; }
       
       /* Blockquote */
-      blockquote { font-style: italic; border-left: 0.25rem solid #e5e7eb; padding-left: 1em; }
+      blockquote { font-style: italic; border-left: 0.25rem solid #e5e7eb; padding-left: 1em; line-height: 1.6; }
       
       /* Code */
-      code { background-color: #f3f4f6; padding: 0.2em 0.4em; border-radius: 0.25rem; font-size: 0.875em; font-family: 'Courier New', monospace; }
-      pre { background-color: #f3f4f6; padding: 1em; border-radius: 0.375rem; overflow-x: auto; }
-      pre code { background-color: transparent; padding: 0; font-size: 0.875em; }
+      code { background-color: #f3f4f6; padding: 0.2em 0.4em; border-radius: 0.25rem; font-size: 0.875em; font-family: 'Courier New', monospace; line-height: 1.5; }
+      pre { background-color: #f3f4f6; padding: 1em; border-radius: 0.375rem; overflow-x: auto; line-height: 1.5; }
+      pre code { background-color: transparent; padding: 0; font-size: 0.875em; line-height: 1.5; }
       
       /* Links */
-      a { color: #2563eb; text-decoration: underline; }
+      a { color: #2563eb; text-decoration: underline; line-height: 1.6; }
       
       /* Text styles */
-      strong { font-weight: 600; }
-      em { font-style: italic; }
+      strong { font-weight: 600; line-height: 1.6; }
+      em { font-style: italic; line-height: 1.6; }
       
       /* Images */
-      img { max-width: 100%; height: auto; margin-top: 1rem; margin-bottom: 1rem; }
+      img { max-width: 100%; height: auto; margin-top: 1rem; margin-bottom: 1rem; line-height: 1.6; }
       
       /* Tables */
-      table { width: 100%; border-collapse: collapse; }
-      th { font-weight: 600; border-bottom: 1px solid #e5e7eb; padding: 0.5714286em; text-align: left; }
-      td { border-bottom: 1px solid #e5e7eb; padding: 0.5714286em; }
+      table { width: 100%; border-collapse: collapse; line-height: 1.6; }
+      th { font-weight: 600; border-bottom: 1px solid #e5e7eb; padding: 0.5714286em; text-align: left; line-height: 1.6; }
+      td { border-bottom: 1px solid #e5e7eb; padding: 0.5714286em; line-height: 1.6; }
       
       /* HR */
-      hr { border: 0; border-top: 1px solid #e5e7eb; margin-top: 1rem; margin-bottom: 1rem; }
+      hr { border: 0; border-top: 1px solid #e5e7eb; margin-top: 1rem; margin-bottom: 1rem; line-height: 1.6; }
       
       /* Checkboxes */
-      input[type="checkbox"] { margin-right: 0.5em; margin-top: 0.3em; }
+      input[type="checkbox"] { margin-right: 0.5em; margin-top: 0.3em; line-height: 1.6; }
     `;
     container.appendChild(style);
 
@@ -129,8 +126,8 @@ export const exportToPDF = async (
       await openPath(filePath);
     }
     
-    // Cleanup
-    container.remove();
+    // Cleanup - remove from DOM
+    document.body.removeChild(container);
     
     return filePath;
   } catch (error) {
