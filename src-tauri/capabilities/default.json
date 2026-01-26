@@ -15,6 +15,14 @@
         }
       ]
     },
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "**"
+        }
+      ]
+    },
     "core:window:default",
     "core:window:allow-start-dragging",
     "core:window:allow-close",

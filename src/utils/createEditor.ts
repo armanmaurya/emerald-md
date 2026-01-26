@@ -3,7 +3,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "@tiptap/markdown";
 import Typography from "@tiptap/extension-typography";
 import Image from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
+import { CustomLink } from "../editor/extensions/link";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import { Table } from "@tiptap/extension-table";
@@ -21,11 +21,18 @@ export function createEditor(props: CreateEditorOptions) {
     contentType: "markdown",
     autofocus: true,
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false, // Disable the default link extension from StarterKit
+      }),
+      CustomLink.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'link',
+        },
+      }),
       Markdown,
       Typography,
       Image,
-      Link,
       TaskList,
       TaskItem.configure({
         nested: true,
