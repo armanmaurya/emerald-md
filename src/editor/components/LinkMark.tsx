@@ -90,31 +90,35 @@ export default function LinkMark(props: LinkMarkProps) {
     const href = props.HTMLAttributes.href;
     if (!href) return;
 
-    // Check if it's a relative path (not http://, https://, file://, etc.)
-    const isRelative = !href.match(/^[a-zA-Z]+:\/\//);
+    // Check if it's an absolute URL with protocol
+    if (href.match(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//)) {
+      await openUrl(href);
+      return;
+    }
+
+    // Check if it starts with www. or looks like a domain name
+    if (href.match(/^www\./) || href.match(/^[a-zA-Z0-9-]+\.(com|org|net|edu|gov|io|co|dev|app|xyz|tech|info|biz|me|ai|ly|gg|tv|fm|to|cc|it|us|uk|ca|de|fr|jp|cn|au|in|br|mx|es|nl|se|no|fi|dk|pl|ru|kr|sg|nz|za|hk|tw|th|my|id|ph|vn|tr|ae|sa|eg|ng|ke|gh|ug|tz|zm|zw|bw|mw|rw|bi|dj|et|so|sd|ss|er|km|sc|mu|mg|re|yt|mz|ao|na|sz|ls|cd|cg|cm|gq|ga|cf|td|ne|ml|mr|sn|gm|gw|sl|lr|ci|bf|tg|bj|gh|ng|cv|st|bw|sz|ls|za|na|mw|zm|zw|mz|mg|km|sc|mu|re|yt|tf|io|sh|ac|gg|je|im|eu|asia|aero|coop|museum|name|pro|travel|jobs|mobi|cat|tel|xxx|post|mil|int|arpa|local|test|example|invalid|localhost|onion|i2p|bit|lib|coin|emc|bazar|eth|crypto|nft|web3|dao|dapp|defi)$/i)) {
+      await openUrl(`https://${href}`);
+      return;
+    }
+
+    // Otherwise, treat as relative path
+    const activeTab = tabs.find(tab => tab.id === activeTabId);
     
-    if (isRelative) {
-      // Get the current tab to find the active file path
-      const activeTab = tabs.find(tab => tab.id === activeTabId);
-      
-      if (activeTab && activeTab.type === 'editor' && activeTab.path) {
-        try {
-          // Get the directory of the current file
-          const currentDir = await dirname(activeTab.path);
-          // Resolve the relative path to an absolute path
-          const absolutePath = await resolve(currentDir, href);
-          await openUrl(absolutePath);
-        } catch (error) {
-          console.error("Failed to resolve relative path:", error);
-          // Fallback to opening the relative path as-is
-          await openUrl(href);
-        }
-      } else {
-        // No active file, just open as-is
+    if (activeTab && activeTab.type === 'editor' && activeTab.path) {
+      try {
+        // Get the directory of the current file
+        const currentDir = await dirname(activeTab.path);
+        // Resolve the relative path to an absolute path
+        const absolutePath = await resolve(currentDir, href);
+        await openUrl(absolutePath);
+      } catch (error) {
+        console.error("Failed to resolve relative path:", error);
+        // Fallback to opening the relative path as-is
         await openUrl(href);
       }
     } else {
-      // It's already an absolute URL
+      // No active file, just open as-is
       await openUrl(href);
     }
   };

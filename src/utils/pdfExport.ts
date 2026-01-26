@@ -21,9 +21,11 @@ export const exportToPDF = async (
   htmlContent: string,
   options: PDFExportOptions = {}
 ): Promise<string | null> => {
+  let container: HTMLDivElement | null = null;
+  
   try {
     // Create a temporary container for the content
-    const container = document.createElement('div');
+    container = document.createElement('div');
     container.innerHTML = htmlContent;
     
     // Apply styling to match the editor's appearance exactly
@@ -85,6 +87,9 @@ export const exportToPDF = async (
       input[type="checkbox"] { margin-right: 0.5em; margin-top: 0.3em; line-height: 1.6; }
     `;
     container.appendChild(style);
+    
+    // Append to body (required for html2pdf to work properly)
+    document.body.appendChild(container);
 
     // Default options
     const defaultOptions = {
@@ -126,13 +131,15 @@ export const exportToPDF = async (
       await openPath(filePath);
     }
     
-    // Cleanup - remove from DOM
-    document.body.removeChild(container);
-    
     return filePath;
   } catch (error) {
     console.error('Failed to export PDF:', error);
     throw new Error('Failed to export PDF. Please try again.');
+  } finally {
+    // Cleanup - remove from DOM if it was added
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container);
+    }
   }
 };
 
