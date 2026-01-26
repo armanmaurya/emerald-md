@@ -35,8 +35,6 @@ If you fix a bug:
 
 A good way to start is to find an [issue](https://github.com/armanmaurya/emerald-md/issues) labeled as `bug`, `help wanted` or `feature request`. The `good first issue` issues are good for newcomers. Please discuss the solution for larger issues first and after the final solution is approved by the MarkText members, you can submit/work on the PR. For small changes you can directly open a PR.
 
-
-
 Other ways to help:
 
 - Documentation

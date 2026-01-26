@@ -45,6 +45,15 @@
     {
       "identifier": "fs:allow-remove",
       "allow": ["**"]
+    },
+    {
+      "identifier": "core:path:default"
+    },
+    {
+      "identifier": "core:path:allow-resolve"
+    },
+    {
+      "identifier": "core:path:allow-dirname"
     }
   ]
 }

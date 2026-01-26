@@ -3,6 +3,8 @@ import { MarkViewContent, MarkViewRendererProps } from "@tiptap/react";
 import { motion, AnimatePresence } from "motion/react";
 import { FiExternalLink, FiEdit2 } from "react-icons/fi";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { useWorkspace } from "../../hooks/useWorkspace";
+import { dirname, resolve } from "@tauri-apps/api/path";
 
 interface LinkMarkProps extends MarkViewRendererProps {
   HTMLAttributes: MarkViewRendererProps["HTMLAttributes"] & {
@@ -11,6 +13,7 @@ interface LinkMarkProps extends MarkViewRendererProps {
 }
 
 export default function LinkMark(props: LinkMarkProps) {
+  const { tabs, activeTabId } = useWorkspace();
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editUrl, setEditUrl] = useState(props.HTMLAttributes.href || "");
@@ -85,7 +88,33 @@ export default function LinkMark(props: LinkMarkProps) {
 
   const handleVisitLink = async () => {
     const href = props.HTMLAttributes.href;
-    if (href) {
+    if (!href) return;
+
+    // Check if it's a relative path (not http://, https://, file://, etc.)
+    const isRelative = !href.match(/^[a-zA-Z]+:\/\//);
+    
+    if (isRelative) {
+      // Get the current tab to find the active file path
+      const activeTab = tabs.find(tab => tab.id === activeTabId);
+      
+      if (activeTab && activeTab.type === 'editor' && activeTab.path) {
+        try {
+          // Get the directory of the current file
+          const currentDir = await dirname(activeTab.path);
+          // Resolve the relative path to an absolute path
+          const absolutePath = await resolve(currentDir, href);
+          await openUrl(absolutePath);
+        } catch (error) {
+          console.error("Failed to resolve relative path:", error);
+          // Fallback to opening the relative path as-is
+          await openUrl(href);
+        }
+      } else {
+        // No active file, just open as-is
+        await openUrl(href);
+      }
+    } else {
+      // It's already an absolute URL
       await openUrl(href);
     }
   };
