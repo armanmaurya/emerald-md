@@ -15,15 +15,17 @@
 
 ## Screenshots
 
-<div align="center" style="display: flex; justify-content: center; gap: 20px;">
-  <div style="flex: 1;">
-    <img src="docs/screenshots/raw.png" alt="Source Mode" width="100%" style="border-radius: 12px;">
-    <p style="margin-top: 10px;"><b>Source Mode</b></p>
-  </div>
-  <div style="flex: 1;">
-    <img src="docs/screenshots/preview.png" alt="Preview Mode" width="100%" style="border-radius: 12px;">
-    <p style="margin-top: 10px;"><b>Preview Mode</b></p>
-  </div>
+<div align="center">
+  <table style="border: none; border-collapse: collapse; padding: 0; margin: 0;">
+    <tr>
+      <td style="border: none; padding: 0 10px 0 0;"><img src="docs/screenshots/raw.png" alt="Source Mode" width="100%" style="border-radius: 12px; display: block;"></td>
+      <td style="border: none; padding: 0 0 0 10px;"><img src="docs/screenshots/preview.png" alt="Preview Mode" width="100%" style="border-radius: 12px; display: block;"></td>
+    </tr>
+    <tr>
+      <td align="center" style="border: none; padding: 10px 10px 0 0;"><b>Source Mode</b></td>
+      <td align="center" style="border: none; padding: 10px 0 0 10px;"><b>Preview Mode</b></td>
+    </tr>
+  </table>
 </div>
 
 ## Features
