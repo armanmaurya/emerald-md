@@ -13,6 +13,19 @@
   </sub>
 </div>
 
+## Screenshots
+
+<div align="center" style="display: flex; justify-content: center; gap: 20px;">
+  <div style="flex: 1;">
+    <img src="docs/screenshots/raw.png" alt="Source Mode" width="100%" style="border-radius: 12px;">
+    <p style="margin-top: 10px;"><b>Source Mode</b></p>
+  </div>
+  <div style="flex: 1;">
+    <img src="docs/screenshots/preview.png" alt="Preview Mode" width="100%" style="border-radius: 12px;">
+    <p style="margin-top: 10px;"><b>Preview Mode</b></p>
+  </div>
+</div>
+
 ## Features
 - Realtime preview (WYSIWYG) and a polished interface with split view.
 - Supprot all major markdown syntax.
