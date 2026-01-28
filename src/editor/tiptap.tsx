@@ -7,6 +7,7 @@ import { useWorkspace } from "../hooks/useWorkspace";
 import { exportToPDF } from "../utils/pdfExport";
 import { useToast } from "../hooks/useToast";
 
+
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -200,7 +201,7 @@ const Tiptap = ({
               height="100%"
               className="h-full"
               theme={oneDark}
-              extensions={[markdown(), customTheme]}
+              extensions={[markdown(), customTheme, EditorView.lineWrapping]}
               onChange={handleSourceChange}
               basicSetup={{
                 lineNumbers: false,

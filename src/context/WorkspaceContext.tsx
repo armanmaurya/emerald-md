@@ -30,6 +30,8 @@ export interface DashboardTab extends BaseTab {
 
 export type TabState = EditorTab | SettingsTab | DashboardTab;
 
+export type PendingAction = "close-tab" | "close-window" | null;
+
 type IWorkspace = {
   tabs: TabState[];
   addTab: (type?: TabType, config?: any) => void;
@@ -51,6 +53,8 @@ type IWorkspace = {
   setShowConfirmDialog: (show: boolean) => void;
   pendingCloseTabId: string | null;
   setPendingCloseTabId: (id: string | null) => void;
+  pendingAction: PendingAction;
+  setPendingAction: (action: PendingAction) => void;
   handleConfirmSave: () => Promise<void>;
   handleConfirmDiscard: () => void;
   handleConfirmCancel: () => void;
@@ -58,6 +62,8 @@ type IWorkspace = {
   duplicateTab: (id: string) => void;
   closeOthers: (id: string) => void;
   closeAll: () => void;
+  getUnsavedTabs: () => EditorTab[];
+  getConfirmDialogMessage: () => string;
 };
 
 export const WorkspaceContext = createContext<IWorkspace | undefined>(
@@ -74,6 +80,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     null,
   );
   const [isSavingPendingTab, setIsSavingPendingTab] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
   // Load recent files from storage on mount
   useEffect(() => {
@@ -198,6 +205,7 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     if (tabToRemove?.type === "editor" && tabToRemove.isDirty) {
       // Show confirmation dialog instead of removing immediately
       setPendingCloseTabId(idToRemove);
+      setPendingAction("close-tab");
       setShowConfirmDialog(true);
       return;
     }
@@ -293,31 +301,133 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const handleConfirmSave = async () => {
     if (!pendingCloseTabId) return;
 
-    const tabToSave = tabs.find((tab) => tab.id === pendingCloseTabId);
-    if (!tabToSave || tabToSave.type !== "editor") return;
+    // Capture the action and tab ID at the start
+    const action = pendingAction;
+    const tabIdToClose = pendingCloseTabId;
 
-    setIsSavingPendingTab(true);
+    // Check if this is a window close action
+    const isWindowClose = action === "close-window";
 
-    // Import performFileSave dynamically to avoid circular dependencies
-    const { performFileSave } = await import("../utils/fileSystem");
+    if (!isWindowClose) {
+      // Original tab close behavior
+      const tabToSave = tabs.find((tab) => tab.id === tabIdToClose);
+      if (!tabToSave || tabToSave.type !== "editor") return;
 
-    try {
-      const saveSuccess = await performFileSave(tabToSave, updateTab);
+      setIsSavingPendingTab(true);
 
-      // Only close the tab if save was successful
-      if (!saveSuccess) {
+      // Import performFileSave dynamically to avoid circular dependencies
+      const { performFileSave } = await import("../utils/fileSystem");
+
+      try {
+        const saveSuccess = await performFileSave(tabToSave, updateTab);
+
+        // Only close the tab if save was successful
+        if (!saveSuccess) {
+          setIsSavingPendingTab(false);
+          return; // Save was cancelled or failed, keep dialog open
+        }
+
+        // Reset isDirty and close the tab
+        updateTab(tabIdToClose, { isDirty: false } as Partial<EditorTab>);
+
+        // Now actually remove the tab
+        if (activeTabId === tabIdToClose) {
+          const currentIndex = tabs.findIndex((tab) => tab.id === tabIdToClose);
+          const remainingTabs = tabs.filter((tab) => tab.id !== tabIdToClose);
+
+          if (remainingTabs.length > 0) {
+            const nextActiveIndex = currentIndex > 0 ? currentIndex - 1 : 0;
+            setActiveTabId(remainingTabs[nextActiveIndex].id);
+          } else {
+            setActiveTabId(null);
+          }
+        }
+
+        setTabsState((prevTabs) =>
+          prevTabs.filter((tab) => tab.id !== tabIdToClose),
+        );
+
+        // Reset dialog state
+        setShowConfirmDialog(false);
+        setPendingCloseTabId(null);
+        setPendingAction(null);
+      } finally {
         setIsSavingPendingTab(false);
-        return; // Save was cancelled or failed, keep dialog open
+      }
+    } else {
+      // Window close action - save all dirty tabs
+      setIsSavingPendingTab(true);
+
+      // Import performFileSave dynamically to avoid circular dependencies
+      const { performFileSave } = await import("../utils/fileSystem");
+
+      try {
+        const dirtyTabs = tabs.filter(
+          (tab) => tab.type === "editor" && tab.isDirty,
+        );
+
+        // Save all dirty tabs
+        for (const dirtyTab of dirtyTabs) {
+          const saveSuccess = await performFileSave(dirtyTab, updateTab);
+          if (!saveSuccess) {
+            setIsSavingPendingTab(false);
+            return; // Save was cancelled or failed, keep dialog open
+          }
+          // Reset isDirty after successful save
+          updateTab(dirtyTab.id, { isDirty: false } as Partial<EditorTab>);
+        }
+      } catch (error) {
+        console.error("Error saving tabs:", error);
+        setIsSavingPendingTab(false);
+        return;
       }
 
-      // Reset isDirty and close the tab
-      updateTab(pendingCloseTabId, { isDirty: false } as Partial<EditorTab>);
+      // All saves successful - now close the window
+      setIsSavingPendingTab(false);
+      setShowConfirmDialog(false);
+      setPendingCloseTabId(null);
+      setPendingAction(null);
 
-      // Now actually remove the tab
-      const idToRemove = pendingCloseTabId;
-      if (activeTabId === idToRemove) {
-        const currentIndex = tabs.findIndex((tab) => tab.id === idToRemove);
-        const remainingTabs = tabs.filter((tab) => tab.id !== idToRemove);
+      // Unsubscribe the close listener to prevent it from firing again
+      const unsubscribeRef = (window as any).__closeListenerUnsubscribe;
+      if (unsubscribeRef?.current) {
+        unsubscribeRef.current();
+      }
+
+      // Force destroy the window to bypass all listeners
+      setTimeout(async () => {
+        try {
+          const { getCurrentWebviewWindow } = await import(
+            "@tauri-apps/api/webviewWindow"
+          );
+          const appWindow = getCurrentWebviewWindow();
+          // Use destroy() instead of close() to force close without triggering events
+          await appWindow.destroy();
+        } catch (error) {
+          console.error("Failed to close window:", error);
+        }
+      }, 50);
+    }
+  };
+
+  const handleConfirmDiscard = async () => {
+    if (!pendingCloseTabId) return;
+
+    // Capture the action and tab ID at the start
+    const action = pendingAction;
+    const tabIdToClose = pendingCloseTabId;
+
+    const isWindowClose = action === "close-window";
+
+    if (!isWindowClose) {
+      // Original tab close behavior
+      // Set isDirty to false to bypass the check
+      updateTab(tabIdToClose, { isDirty: false } as Partial<EditorTab>);
+
+      // Now remove the tab
+      if (activeTabId === tabIdToClose) {
+        const currentIndex = tabs.findIndex((tab) => tab.id === tabIdToClose);
+        const remainingTabs = tabs.filter((tab) => tab.id !== tabIdToClose);
 
         if (remainingTabs.length > 0) {
           const nextActiveIndex = currentIndex > 0 ? currentIndex - 1 : 0;
@@ -327,46 +437,44 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      setTabsState((prevTabs) =>
-        prevTabs.filter((tab) => tab.id !== idToRemove),
-      );
+      setTabsState((prevTabs) => prevTabs.filter((tab) => tab.id !== tabIdToClose));
 
+      // Reset dialog state
       setShowConfirmDialog(false);
       setPendingCloseTabId(null);
-    } finally {
-      setIsSavingPendingTab(false);
-    }
-  };
+      setPendingAction(null);
+    } else {
+      // Window close action - discard all changes and close
+      setShowConfirmDialog(false);
+      setPendingCloseTabId(null);
+      setPendingAction(null);
 
-  const handleConfirmDiscard = () => {
-    if (!pendingCloseTabId) return;
-
-    // Set isDirty to false to bypass the check
-    updateTab(pendingCloseTabId, { isDirty: false } as Partial<EditorTab>);
-
-    // Now remove the tab
-    const idToRemove = pendingCloseTabId;
-    if (activeTabId === idToRemove) {
-      const currentIndex = tabs.findIndex((tab) => tab.id === idToRemove);
-      const remainingTabs = tabs.filter((tab) => tab.id !== idToRemove);
-
-      if (remainingTabs.length > 0) {
-        const nextActiveIndex = currentIndex > 0 ? currentIndex - 1 : 0;
-        setActiveTabId(remainingTabs[nextActiveIndex].id);
-      } else {
-        setActiveTabId(null);
+      // Unsubscribe the close listener to prevent it from firing again
+      const unsubscribeRef = (window as any).__closeListenerUnsubscribe;
+      if (unsubscribeRef?.current) {
+        unsubscribeRef.current();
       }
+
+      // Force destroy the window to bypass all listeners
+      setTimeout(async () => {
+        try {
+          const { getCurrentWebviewWindow } = await import(
+            "@tauri-apps/api/webviewWindow"
+          );
+          const appWindow = getCurrentWebviewWindow();
+          // Use destroy() instead of close() to force close without triggering events
+          await appWindow.destroy();
+        } catch (error) {
+          console.error("Failed to close window:", error);
+        }
+      }, 50);
     }
-
-    setTabsState((prevTabs) => prevTabs.filter((tab) => tab.id !== idToRemove));
-
-    setShowConfirmDialog(false);
-    setPendingCloseTabId(null);
   };
 
   const handleConfirmCancel = () => {
     setShowConfirmDialog(false);
     setPendingCloseTabId(null);
+    setPendingAction(null);
   };
 
   const duplicateTab = (id: string) => {
@@ -421,6 +529,34 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const getUnsavedTabs = () => {
+    return tabs.filter(
+      (tab) => tab.type === "editor" && tab.isDirty,
+    ) as EditorTab[];
+  };
+
+  const getConfirmDialogMessage = () => {
+    const unsavedTabs = getUnsavedTabs();
+    
+    if (pendingAction === "close-window") {
+      if (unsavedTabs.length === 0) {
+        return "You have unsaved changes. Do you want to save them before closing?";
+      } else if (unsavedTabs.length === 1) {
+        return `The tab "${unsavedTabs[0].title}" has unsaved changes. Do you want to save them before closing the window?`;
+      } else {
+        const tabNames = unsavedTabs.map((t) => `"${t.title}"`).join(", ");
+        return `The following ${unsavedTabs.length} tabs have unsaved changes: ${tabNames}. Do you want to save them before closing the window?`;
+      }
+    } else {
+      // Single tab close
+      const tabToClose = tabs.find((tab) => tab.id === pendingCloseTabId);
+      if (tabToClose?.type === "editor") {
+        return `The tab "${tabToClose.title}" has unsaved changes. Do you want to save them before closing?`;
+      }
+      return "You have unsaved changes. Do you want to save them before closing?";
+    }
+  };
+
   return (
     <WorkspaceContext.Provider
       value={{
@@ -444,6 +580,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         setShowConfirmDialog,
         pendingCloseTabId,
         setPendingCloseTabId,
+        pendingAction,
+        setPendingAction,
         handleConfirmSave,
         handleConfirmDiscard,
         handleConfirmCancel,
@@ -451,6 +589,8 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
         duplicateTab,
         closeOthers,
         closeAll,
+        getUnsavedTabs,
+        getConfirmDialogMessage,
       }}
     >
       {children}

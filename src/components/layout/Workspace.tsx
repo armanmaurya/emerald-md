@@ -29,6 +29,7 @@ const Workspace = () => {
     handleConfirmDiscard,
     handleConfirmCancel,
     isSavingPendingTab,
+    getConfirmDialogMessage,
   } = useWorkspace();
   const { isSidebarOpen } = useLayout();
   const tabsContainerRef = useRef<HTMLDivElement>(
@@ -154,7 +155,7 @@ const Workspace = () => {
       <ConfirmDialog
         isOpen={showConfirmDialog}
         title="Unsaved Changes"
-        message="You have unsaved changes. Do you want to save them before closing?"
+        message={getConfirmDialogMessage()}
         onSave={handleConfirmSave}
         onDiscard={handleConfirmDiscard}
         onCancel={handleConfirmCancel}
